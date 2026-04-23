@@ -12,8 +12,10 @@ import {
   MessageCircle,
   Crown,
   FileBarChart,
+  Megaphone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useBusiness } from "@/context/BusinessContext";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -21,6 +23,7 @@ const navItems = [
   { href: "/contacts", label: "Contactos", icon: Users },
   { href: "/deals", label: "Deals", icon: Briefcase },
   { href: "/conversations", label: "Conversaciones", icon: MessageCircle },
+  { href: "/ads", label: "Meta Ads", icon: Megaphone },
   { href: "/loyalty", label: "Lealtad", icon: Crown },
   { href: "/reports", label: "Reportes", icon: FileBarChart },
   { href: "/activities", label: "Actividades", icon: Activity },
@@ -29,6 +32,7 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { businessConfig } = useBusiness();
 
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col bg-[var(--sidebar)] text-[var(--sidebar-foreground)] min-h-screen">
@@ -64,8 +68,8 @@ export function Sidebar() {
         <p className="text-xs text-[var(--sidebar-foreground)]/50">
           Auto-CRM v2.0
         </p>
-        <p className="text-xs text-[var(--sidebar-foreground)]/50">
-          Esmeraldas SOLER
+        <p className="text-xs text-[var(--sidebar-foreground)]/50" style={{ color: businessConfig.color }}>
+          {businessConfig.name}
         </p>
       </div>
     </aside>

@@ -11,6 +11,7 @@ import {
   Briefcase,
   MessageCircle,
   Crown,
+  Megaphone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/contacts", label: "Contactos", icon: Users },
   { href: "/deals", label: "Deals", icon: Briefcase },
   { href: "/conversations", label: "Conversaciones", icon: MessageCircle },
+  { href: "/ads", label: "Meta Ads", icon: Megaphone },
   { href: "/loyalty", label: "Lealtad", icon: Crown },
   { href: "/activities", label: "Actividades", icon: Activity },
   { href: "/settings", label: "Configuracion", icon: Settings },
