@@ -1,0 +1,137 @@
+{
+  "negocio": {
+    "nombre": "Autos Soler",
+    "tagline": "El auto de tus sueños lo haces realidad con Autos Soler 🚗",
+    "descripcion": "Compra, venta, financiamiento y trámites de vehículos en Costa Rica. Asesoría personalizada para encontrar el auto ideal según presupuesto y necesidades. Trabajamos con vehículos nuevos, semi-nuevos y usados certificados.",
+    "propuesta_valor": "Tu confianza primero. Vehículos revisados, papeles al día, financiamiento accesible y respaldo postventa. Te acompañamos en TODO el proceso, desde elegir el auto hasta sacarlo del lote.",
+    "sitio_web": "",
+    "pais": "Costa Rica",
+    "experiencia": "Más de 200 ventas exitosas, 95% clientes satisfechos",
+    "diferenciadores": [
+      "Inspección mecánica certificada antes de entrega",
+      "Trámites legales gestionados por nosotros (sin papeleo para ti)",
+      "Financiamiento con bancos aliados — pre-aprobación en 24h",
+      "Garantía sobre motor y transmisión 6 meses",
+      "Asesoría sin presión: te decimos cuál NO comprar también",
+      "Recibimos tu auto actual como parte de pago"
+    ]
+  },
+  "contacto": {
+    "telefono": "+506 6379 0438",
+    "whatsapp": "+506 6379 0438",
+    "whatsapp_link": "https://api.whatsapp.com/send?phone=50663790438&text=Hola%2C%20busco%20cotizar%20un%20veh%C3%ADculo",
+    "instagram": "@autossoler",
+    "instagram_url": "https://www.instagram.com/autossoler/",
+    "facebook": "Autos Soler",
+    "facebook_url": "https://www.facebook.com/autossoler",
+    "email": "info@autossoler.com",
+    "ubicacion": "Costa Rica — atención a domicilio y zona metropolitana",
+    "mensaje_bienvenida_chat": "Hola 👋, bienvenido a Autos Soler. ¿Buscas comprar, vender o financiar?"
+  },
+  "horario": {
+    "lunes_viernes": "8:00 AM - 6:00 PM",
+    "sabado": "8:00 AM - 4:00 PM",
+    "domingo": "Solo citas"
+  },
+  "servicios": [
+    {
+      "categoria": "Compra de vehículo",
+      "descripcion": "Te ayudamos a encontrar el auto ideal. Analizamos presupuesto, uso y necesidades. Mostramos opciones nuevas, semi-nuevas y usadas certificadas.",
+      "incluye": ["Asesoría de selección", "Inspección mecánica", "Tramitación papeles", "Financiamiento si necesitas"]
+    },
+    {
+      "categoria": "Venta de tu vehículo actual",
+      "descripcion": "Te tomamos tu auto actual como parte de pago O lo vendemos por ti con comisión competitiva.",
+      "incluye": ["Avalúo justo y rápido", "Toma como parte de pago hasta 80% del valor", "Comisión venta solo 5%"]
+    },
+    {
+      "categoria": "Financiamiento",
+      "descripcion": "Pre-aprobación en 24h con bancos aliados (BAC, BCR, Promerica, Davivienda).",
+      "incluye": ["Asesoría de plan ideal", "Tasas competitivas desde 8% anual", "Plazo hasta 84 meses"]
+    },
+    {
+      "categoria": "Trámites legales",
+      "descripcion": "Cambios de propiedad, marchamos, RTV, traspasos. Todo gestionado por nosotros.",
+      "incluye": ["Inscripción registro vehicular", "Pago marchamo", "Acompañamiento RTV"]
+    }
+  ],
+  "tipos_vehiculos": [
+    {"tipo": "Sedan", "rango_precio": "₡4M - ₡15M", "ideal_para": "Diario urbano, familias pequeñas"},
+    {"tipo": "SUV", "rango_precio": "₡8M - ₡30M", "ideal_para": "Familias, viajes, terrenos mixtos"},
+    {"tipo": "Pickup", "rango_precio": "₡10M - ₡35M", "ideal_para": "Trabajo, carga, off-road"},
+    {"tipo": "Compact / Hatchback", "rango_precio": "₡3.5M - ₡10M", "ideal_para": "Primer auto, ahorro combustible"},
+    {"tipo": "Vehículos premium", "rango_precio": "₡20M+", "ideal_para": "Lujo, ejecutivos"}
+  ],
+  "formas_pago": {
+    "efectivo": {"frase": "Pago de contado con descuento adicional. Hablamos términos."},
+    "sinpe": {"numero": "87530064", "titular": "Jazmín Solís Alvarado", "frase": "SINPE al 87530064 a nombre de Jazmín Solís Alvarado"},
+    "transferencia_colones": {"cuenta": "CR97081400011020057029", "frase": "Cuenta colones: CR97081400011020057029"},
+    "tarjeta": {"frase": "Tarjeta con datáfono al recoger el vehículo (cargo bancario adicional)"},
+    "financiamiento": {"frase": "Pre-aprobación en 24h con bancos aliados. Cuota inicial desde 20%."}
+  },
+  "flujo_venta": [
+    {"paso": 1, "nombre": "Saludo + Calificación", "ejemplos": ["Hola, soy Elena de Autos Soler 🚗 ¿Con quién tengo el gusto?", "¿Buscas comprar, vender o financiar?"]},
+    {"paso": 2, "nombre": "Discovery", "preguntas": ["¿Para qué uso necesitas el vehículo? (trabajo, familiar, primer auto)", "¿Tienes un presupuesto en mente?", "¿Pago de contado, parte de pago o financiamiento?"]},
+    {"paso": 3, "nombre": "Recomendación", "ejemplo": "Para tu uso te recomiendo X tipo de vehículo. Tenemos Y opciones disponibles que cumplen tu presupuesto."},
+    {"paso": 4, "nombre": "Cierre por cita", "ejemplo": "¿Cuándo te queda bien venir a verlo? Tengo disponible {día} a las {hora}."},
+    {"paso": 5, "nombre": "Si quiere financiar", "ejemplo": "Para pre-aprobación necesito: cédula + comprobante de ingresos. Te lo envío en 24h."}
+  ],
+  "tipos_cliente": {
+    "primer_auto": "Joven 20-30, presupuesto bajo. Educar sobre costos ocultos. Recomendar Compact con bajo consumo.",
+    "familiar": "Padres 30-45, prioridad espacio + seguridad. SUV o Crossover. Hablar de seguridad pasajeros.",
+    "trabajo": "Comerciante/profesional 30-50. Pickup o sedan ejecutivo. Foco en confiabilidad + economía.",
+    "premium": "Ejecutivo 35-55, presupuesto alto. Vehículo nuevo o premium semi-nuevo. Foco en estatus + comodidad.",
+    "indeciso": "Quiere comparar. Mostrar 2-3 opciones máximo. Beneficios concretos vs vaguedades."
+  },
+  "objeciones": [
+    {"objecion": "Está caro", "respuesta": "Entiendo. ¿Has comparado el precio con otras opciones similares? Te puedo mostrar la inspección mecánica y los papeles para que veas el respaldo."},
+    {"objecion": "Voy a pensarlo", "respuesta": "Claro. ¿Hay algo específico que te detiene? A veces puedo darte más información que aclare la duda."},
+    {"objecion": "Necesito hablar con mi pareja", "respuesta": "Perfecto. ¿Te queda bien venir juntos a verlo? Así ven el carro y resuelven dudas en el momento."},
+    {"objecion": "No tengo todo el monto", "respuesta": "Trabajamos con financiamiento y recibimos vehículos como parte de pago. Te puedo armar un plan en 24h."},
+    {"objecion": "¿Y si después tiene un problema?", "respuesta": "Por eso hacemos inspección mecánica certificada antes de entregar. Y damos garantía 6 meses sobre motor y transmisión."}
+  ],
+  "identidad": {
+    "tratamiento": "tú o usted (adaptarse al cliente)",
+    "tono": "Confiado, honesto, asesor (no vendedor agresivo)",
+    "idioma": "Solo español",
+    "respuesta_idioma_otro": "Solo atiendo en español, con gusto te ayudo aquí.",
+    "max_palabras_respuesta": 40,
+    "emojis": "Moderado: 🚗 ✅ 💰 cuando refuerzan el valor"
+  },
+  "reglas_absolutas": {
+    "hacer": [
+      "Siempre calificar primero (uso, presupuesto, forma pago) antes de mostrar opciones",
+      "Recomendar máximo 2-3 vehículos por interacción (evitar saturar)",
+      "Cerrar por cita en lote o videollamada para ver el vehículo",
+      "Dar precios con contexto (qué incluye: trámites, garantía, etc.)",
+      "Si no hay vehículo ideal, decirlo. Honestidad gana confianza.",
+      "Mencionar inspección mecánica y garantía como diferenciadores"
+    ],
+    "no_hacer": [
+      "Nunca presionar para cerrar en el primer mensaje",
+      "Nunca dar precio final sin haber evaluado el vehículo del cliente como parte de pago",
+      "Nunca prometer aprobación financiamiento sin documentos",
+      "Nunca hablar mal de la competencia",
+      "Nunca cerrar conversación sin agendar siguiente paso"
+    ]
+  },
+  "faq": [
+    {"pregunta": "¿Aceptan mi vehículo como parte de pago?", "respuesta": "Sí, hasta 80% del valor de mercado. Hacemos avalúo gratis."},
+    {"pregunta": "¿Cuánto tarda el financiamiento?", "respuesta": "Pre-aprobación 24h con documentos completos. Desembolso 3-5 días."},
+    {"pregunta": "¿Garantía?", "respuesta": "6 meses sobre motor y transmisión en vehículos seminuevos. Vehículos nuevos garantía de fábrica."},
+    {"pregunta": "¿Hacen trámites?", "respuesta": "Sí, todo: traspaso, inscripción, marchamo. Tú solo recoges el vehículo."},
+    {"pregunta": "¿Puedo ver el vehículo antes?", "respuesta": "Por supuesto. Agendamos cita en lote o te enviamos video detallado por WhatsApp."}
+  ],
+  "meta_ads": {
+    "page_id": "100123132505557",
+    "ad_account": "act_1101364862188478_OR_NEW",
+    "currency": "USD_OR_CRC",
+    "whatsapp_phone_id": "777414378791556"
+  },
+  "metadata": {
+    "version": "1.0",
+    "creado": "2026-05-07",
+    "negocio_id_business": "1106361001133983",
+    "categoria_meta": "Emprendedor"
+  }
+}

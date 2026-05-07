@@ -1,0 +1,26 @@
+{
+  "campaign_id": "6973745605052",
+  "adset_id": "6973746161452",
+  "product_set_id": "2026778511210048",
+  "catalog_id": "955793357293894",
+  "page_id": "100123132505557",
+  "ad_account": "act_2385776465260628",
+  "currency": "CRC",
+  "budget_daily_crc": 1500,
+  "destination": "MESSAGING_INSTAGRAM_DIRECT_MESSENGER",
+  "optimization": "CONVERSATIONS + Advantage+ Audience",
+  "targeting": "CR 25-65 Hombres+Mujeres, intereses auto (Automoviles, Sector automocion, Vehiculos motor), FB+IG todos placements (feed, story, marketplace, reels, explore)",
+  "status": "PAUSED",
+  "vehiculos_iniciales": [
+    {"retailer_id": "AUTO-001", "title": "Toyota Hilux 2022 4x4 Diesel", "price_crc": 18500000, "id": "26290315324004553"},
+    {"retailer_id": "AUTO-002", "title": "Honda CR-V 2021 SUV Familiar", "price_crc": 14500000, "id": "26734038542890935"},
+    {"retailer_id": "AUTO-003", "title": "Hyundai Elantra 2023 Sedan", "price_crc": 9800000, "id": "26792698290379806"}
+  ],
+  "next_steps": [
+    "1. Recargar saldo act_2385776465260628 (min CRC 15000 = USD 30)",
+    "2. Subir 3 posts organicos a Autos Soler page (1 por vehiculo, foto + caption + precio)",
+    "3. Crear 3 ads en AdSet 6973746161452 referenciando esos posts via object_story_id",
+    "4. Activar todo en Ads Manager",
+    "5. (Futuro) Vincular WABA Autos para agregar canal WhatsApp"
+  ]
+}

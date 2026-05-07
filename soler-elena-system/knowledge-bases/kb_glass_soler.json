@@ -1,0 +1,346 @@
+{
+  "negocio": {
+    "nombre": "Glass Soler",
+    "tagline": "¿Cuánto vale tu seguridad?",
+    "descripcion": "Especialistas en polarizado de seguridad para vehículos y propiedades. Películas de alta calidad importadas de Estados Unidos bajo estándares internacionales de seguridad y rendimiento.",
+    "propuesta_valor": "El polarizado de seguridad no es solo una mejora estética, es una barrera adicional contra robos, impactos y exposición solar extrema.",
+    "sitio_web": "https://glasssoler.com",
+    "pais": "Costa Rica",
+    "experiencia": "Más de 50 vehículos instalados, 98% satisfacción de clientes",
+    "diferenciadores": [
+      "Películas 100% importadas de Estados Unidos",
+      "Estándares internacionales de seguridad y rendimiento",
+      "Instalación profesional con acabados impecables",
+      "Garantía en todos los trabajos",
+      "Evaluación personalizada según tipo de vidrio",
+      "Tecnología multicapa de alto rendimiento (en paquetes superiores)",
+      "Atención desde el primer contacto con explicación clara de cada paquete"
+    ],
+    "stats": {
+      "importado_eeuu": "100%",
+      "vehiculos_instalados": "50+",
+      "satisfaccion_clientes": "98%"
+    }
+  },
+  "contacto": {
+    "telefono": "+506 6379 0438",
+    "whatsapp": "+506 6379 0438",
+    "whatsapp_link": "https://api.whatsapp.com/send?phone=50663790438",
+    "whatsapp_mensajes_prellenados": {
+      "general": "Hola, he visitado la página web y deseo colocar polarizado de seguridad en mi vehículo.",
+      "basico": "Hola, he visitado la página web y deseo colocar polarizado de seguridad básico en mi vehículo.",
+      "full": "Hola, he visitado la página web y deseo colocar polarizado de seguridad full en mi vehículo.",
+      "premium": "Hola, he visitado la página web y deseo colocar polarizado de seguridad premium en mi vehículo."
+    },
+    "email": "info@glasssoler.com",
+    "instagram": "@glasssoler",
+    "instagram_url": "https://www.instagram.com/glasssoler/",
+    "facebook": "Glass Soler",
+    "facebook_url": "https://www.facebook.com/glasssoler/",
+    "pagina_web": "https://glasssoler.com",
+    "mensaje_bienvenida_chat": "Hola 👋, bienvenido a Glass Soler. ¿Podemos ayudarle?"
+  },
+  "horario": {
+    "lunes_viernes": "8:00 AM - 5:00 PM (almuerzo 12:00-1:00)",
+    "sabado": "8:00 AM - 12:00 PM",
+    "domingo": "Cerrado"
+  },
+  "paquetes": [
+    {
+      "nombre": "Seguridad Básica",
+      "nombre_corto": "Básico",
+      "grosor": "8,000 Micras",
+      "precio": "₡299,000",
+      "precio_desde": "Desde ₡299,000",
+      "precio_usd_aprox": "$580",
+      "tono": "Clear (transparente)",
+      "descripcion": "Protección esencial y control solar inteligente. Ideal para quienes buscan reforzar el vidrio sin alterar la visibilidad.",
+      "ideal_para": "Uso cotidiano, conductores que quieren una capa extra de seguridad sin modificar apariencia",
+      "specs": {
+        "tono": "Clear",
+        "resistencia_tension": "32,000 PSI",
+        "resistencia_quiebre": "440 lbs/in (PLI)",
+        "resistencia_perforacion": ">275 lb",
+        "elongacion": ">200%",
+        "fuerza_adhesion": ">5 lb/in",
+        "proteccion_uv": "99%",
+        "transmision_luz_vlt": "86%",
+        "reduccion_deslumbramiento": "1%",
+        "rechazo_energia_solar_tser": "19%"
+      },
+      "beneficio_clave": "Refuerza el vidrio ante impactos y mantiene los fragmentos adheridos en caso de ruptura."
+    },
+    {
+      "nombre": "Seguridad Full",
+      "nombre_corto": "Full",
+      "grosor": "16,000 Micras",
+      "precio": "₡499,000",
+      "precio_desde": "Desde ₡499,000",
+      "precio_usd_aprox": "$970",
+      "tono": "Clear (transparente)",
+      "descripcion": "Más resistencia, más seguridad. Diseñado para quienes buscan mayor resistencia estructural y protección reforzada.",
+      "ideal_para": "Clientes que quieren un paso extra: mejor desempeño ante intentos de intrusión e impactos fuertes",
+      "specs": {
+        "tono": "Clear",
+        "resistencia_tension": "32,000 PSI",
+        "resistencia_quiebre": "650 lbs/in (PLI)",
+        "resistencia_perforacion": ">335 lb",
+        "elongacion": ">200%",
+        "fuerza_adhesion": ">5 lb/in",
+        "proteccion_uv": "99%",
+        "transmision_luz_vlt": "85%",
+        "reduccion_deslumbramiento": "1%",
+        "rechazo_energia_solar_tser": "19%"
+      },
+      "beneficio_clave": "Mayor dificultad ante intentos de intrusión y mejor desempeño ante impactos fuertes."
+    },
+    {
+      "nombre": "Seguridad Premium",
+      "nombre_corto": "Premium",
+      "grosor": "27,000 Micras",
+      "precio": "₡999,000",
+      "precio_desde": "Desde ₡999,000",
+      "precio_usd_aprox": "$1,940",
+      "tono": "Clear (transparente)",
+      "descripcion": "Máxima seguridad, máxima tecnología. Nuestra opción de mayor nivel, pensada para quienes no negocian su protección.",
+      "ideal_para": "Vehículos de alta gama, negocios y propiedades que requieren el nivel más alto de seguridad",
+      "specs": {
+        "tono": "Clear",
+        "pelicula_alto_grosor": true,
+        "refuerzo_estructural_superior": true,
+        "bloqueo_uv": "99%",
+        "alta_retencion_fragmentos": true,
+        "resistencia_acceso_forzado": "máxima",
+        "tecnologia_multicapa": true
+      },
+      "caracteristicas": [
+        "Película de alto grosor y máxima resistencia",
+        "Refuerzo estructural superior del vidrio",
+        "99% bloqueo UV",
+        "Alta retención de fragmentos",
+        "Mayor resistencia ante intentos de acceso forzado",
+        "Tecnología multicapa de alto rendimiento"
+      ],
+      "beneficio_clave": "Diseñado para vehículos de alta gama, negocios y propiedades que requieren el nivel más alto de seguridad."
+    },
+    {
+      "nombre": "Máxima Protección",
+      "nombre_corto": "Máxima",
+      "grosor": "54,000 Micras",
+      "precio": "Cotización personalizada",
+      "precio_desde": "Solicitar Cotización",
+      "descripcion": "Protección superior para casos especiales. El nivel más extremo de protección disponible. Contactar para cotización según necesidades específicas.",
+      "ideal_para": "Casos especiales con requerimientos de protección extrema (alta gama, blindaje complementario, propiedades de alto valor)",
+      "beneficio_clave": "El nivel más extremo de protección disponible."
+    }
+  ],
+  "tipos_servicio": {
+    "vehiculos": "Polarizado de seguridad para automóviles (todos los tipos de vehículos)",
+    "propiedades": "Aplicación en ventanas, vitrinas y puertas de vidrio de casas y negocios",
+    "servicio_domicilio": "Disponible a solicitud",
+    "taller": "Instalación en taller propio"
+  },
+  "beneficios_principales": [
+    {
+      "titulo": "Mayor protección contra robos",
+      "detalle": "Si intentan quebrar el vidrio, la película mantiene los fragmentos adheridos, dificultando el ingreso inmediato y dándote tiempo de reacción."
+    },
+    {
+      "titulo": "Reduce calor y rayos UV",
+      "detalle": "Bloquea gran parte del calor solar y hasta un 99% de rayos UV, protegiendo tu piel, muebles, mercadería y reduciendo el uso del aire acondicionado."
+    },
+    {
+      "titulo": "Privacidad sin perder luz natural",
+      "detalle": "Permite que entre iluminación natural mientras limita la visibilidad desde el exterior, brindándote comodidad y discreción."
+    }
+  ],
+  "beneficios_generales": [
+    {
+      "titulo": "Protección contra fragmentación",
+      "detalles": [
+        "Mantienen los fragmentos adheridos en caso de ruptura",
+        "Reducen el riesgo de lesiones por vidrio roto",
+        "Absorben impactos de baja y media fuerza",
+        "Dificultan intentos de acceso forzado"
+      ]
+    },
+    {
+      "titulo": "Recubrimiento protector resistente",
+      "detalles": [
+        "Capa dura anti-rayaduras",
+        "Superficie limpia y duradera",
+        "Fácil mantenimiento",
+        "Compatible con soluciones típicas de limpieza de ventanas"
+      ]
+    },
+    {
+      "titulo": "Protección UV avanzada",
+      "detalles": [
+        "Bloqueo de hasta 99% de rayos UV",
+        "Reduce la decoloración de muebles y tapicería",
+        "Protege interiores y acabados del vehículo",
+        "Ayuda a preservar el valor de tu propiedad o vehículo"
+      ]
+    },
+    {
+      "titulo": "Alta adhesión y absorción de impactos",
+      "detalles": [
+        "Fuerte adhesión al vidrio actúa como capa estructural adicional",
+        "Refuerza el cristal y mejora desempeño ante golpes",
+        "Mayor protección contra robos — fragmentos adheridos dificultan ingreso",
+        "Reduce calor solar y uso de aire acondicionado"
+      ]
+    },
+    {
+      "titulo": "Privacidad sin perder luz natural",
+      "detalles": [
+        "Permite entrada de iluminación natural",
+        "Limita visibilidad desde el exterior",
+        "Brinda comodidad y discreción"
+      ]
+    }
+  ],
+  "especificaciones_tecnicas": {
+    "origen_peliculas": "Importadas 100% desde Estados Unidos",
+    "estandares": "Fabricadas bajo estándares internacionales de seguridad y rendimiento",
+    "tonos_disponibles": ["Clear (transparente)"],
+    "tecnologia": "Multicapa de alto rendimiento en paquetes superiores",
+    "parametros_medidos": [
+      "Resistencia a la tensión (PSI)",
+      "Resistencia al quiebre / PLI (lbs/in)",
+      "Resistencia a perforación (lb)",
+      "Elongación (%)",
+      "Fuerza de adhesión (lb/in)",
+      "Protección UV (%)",
+      "Transmisión de luz visible (VLT %)",
+      "Reducción de deslumbramiento (%)",
+      "Rechazo total de energía solar (TSER %)"
+    ]
+  },
+  "proceso_instalacion": [
+    {
+      "paso": 1,
+      "titulo": "Agenda tu visita o trae tu vehículo al taller",
+      "descripcion": "Evaluamos tus necesidades y te recomendamos el polarizado de seguridad ideal según el tipo de vidrio y nivel de protección que buscas."
+    },
+    {
+      "paso": 2,
+      "titulo": "Preparación e instalación precisa",
+      "descripcion": "Realizamos una limpieza técnica profunda del vidrio para eliminar polvo, grasa e impurezas. Esto garantiza máxima adherencia y un acabado perfecto."
+    },
+    {
+      "paso": 3,
+      "titulo": "Secado y curado de la placa",
+      "descripcion": "Utilizamos secador industrial para activar el adhesivo y permitir el correcto curado. En las siguientes horas la película termina de fijarse completamente para ofrecer máxima resistencia y durabilidad."
+    },
+    {
+      "paso": 4,
+      "titulo": "Revisión final y recomendaciones",
+      "descripcion": "Verificamos que todo quede en condiciones óptimas. Indicaciones: evitar bajar ventanas los primeros días, no limpiar inmediatamente."
+    }
+  ],
+  "cuidados_post_instalacion": [
+    "No bajar las ventanas durante las primeras 48 horas",
+    "Evitar lavar el vehículo al menos 3-5 días",
+    "No limpiar el vidrio inmediatamente después de la instalación",
+    "El curado completo tarda entre 24 y 48 horas",
+    "Usar soluciones típicas de limpieza de ventanas (compatibles con la capa protectora)"
+  ],
+  "garantia_detalles": {
+    "cobertura": "Todos los trabajos incluyen garantía",
+    "origen_material": "Películas importadas de Estados Unidos con estándares internacionales",
+    "respaldo_instalacion": "Instalación profesional con acabados impecables verificada en revisión final",
+    "nota": "Detalles específicos de la garantía se confirman al agendar la cita"
+  },
+  "formas_pago": {
+    "sinpe": "Al número 63790438 a nombre de Allan Solís.",
+    "transferencia_colones": "Cuenta: consultar al agendar",
+    "tarjeta": "Aceptamos tarjeta en el taller con datáfono.",
+    "efectivo": "Pago al momento de la entrega del trabajo."
+  },
+  "faq": [
+    {
+      "pregunta": "¿Qué tan grueso necesito?",
+      "respuesta": "Depende del nivel de protección. Para uso cotidiano, el Básico (8,000 micras) es excelente. Para más resistencia, Full (16,000 micras). Para alta seguridad o vehículos de gama alta, Premium (27,000 micras) o Máxima Protección (54,000 micras)."
+    },
+    {
+      "pregunta": "¿Cuánto dura la instalación?",
+      "respuesta": "La instalación toma aproximadamente 2-4 horas dependiendo del vehículo y paquete elegido. El curado completo tarda 24-48 horas."
+    },
+    {
+      "pregunta": "¿Puedo lavar el carro después?",
+      "respuesta": "Recomendamos esperar al menos 3-5 días para lavar y no bajar las ventanas en las primeras 48 horas para asegurar el curado perfecto."
+    },
+    {
+      "pregunta": "¿Sirve para casas o solo vehículos?",
+      "respuesta": "Nuestras películas se aplican tanto en vehículos como en propiedades (ventanas, vitrinas, puertas de vidrio). Cotizamos según el área a cubrir."
+    },
+    {
+      "pregunta": "¿Se nota la película en el vidrio?",
+      "respuesta": "No, todos nuestros paquetes son tono Clear (transparente). No alteran la visibilidad ni la apariencia del vidrio, solo refuerzan su seguridad. La transmisión de luz (VLT) ronda el 85-86%."
+    },
+    {
+      "pregunta": "¿Tienen garantía?",
+      "respuesta": "Sí, todos nuestros trabajos tienen garantía. Las películas son importadas de Estados Unidos con estándares internacionales de calidad y se respalda la instalación profesional."
+    },
+    {
+      "pregunta": "¿Hacen servicio a domicilio?",
+      "respuesta": "Sí, ofrecemos servicio a domicilio para su comodidad. Consulte disponibilidad al agendar su cita."
+    },
+    {
+      "pregunta": "¿Cuánto bloquea de rayos UV?",
+      "respuesta": "Todos nuestros paquetes bloquean hasta el 99% de los rayos UV, protegiendo piel, tapicería, muebles y mercadería."
+    },
+    {
+      "pregunta": "¿Reduce el calor dentro del carro?",
+      "respuesta": "Sí. Las películas bloquean gran parte del calor solar y reducen el uso del aire acondicionado. El rechazo total de energía solar (TSER) es aproximadamente 19% en los paquetes Básico y Full."
+    },
+    {
+      "pregunta": "¿Qué diferencia hay entre Básico, Full y Premium?",
+      "respuesta": "El grosor y la resistencia. Básico 8,000 micras (resistencia al quiebre 440 PLI), Full 16,000 micras (650 PLI, perforación >335 lb), Premium 27,000 micras con tecnología multicapa y refuerzo estructural superior. A más grosor, mayor resistencia ante impactos e intentos de intrusión."
+    },
+    {
+      "pregunta": "¿Qué vehículos pueden polarizar?",
+      "respuesta": "Trabajamos todos los tipos de vehículos: sedanes, SUV, pick-ups, vans, vehículos de alta gama y comerciales. La evaluación se hace según el tipo de vidrio y nivel de protección deseado."
+    },
+    {
+      "pregunta": "¿Cómo agendo mi cita?",
+      "respuesta": "Puede escribirnos por WhatsApp al +506 6379 0438, llamarnos al mismo número, o enviarnos correo a info@glasssoler.com. También nos encuentra en Facebook e Instagram como @glasssoler."
+    },
+    {
+      "pregunta": "¿La película se puede rayar o despegar?",
+      "respuesta": "La película tiene una capa dura anti-rayaduras y superficie limpia y duradera. La fuerza de adhesión es >5 lb/in, por lo que actúa como capa estructural adicional del vidrio."
+    }
+  ],
+  "testimonios": [
+    {
+      "nombre": "Andrés M.",
+      "plataforma": "Facebook",
+      "texto_completo": "Desde el primer contacto la atención fue excelente. Me explicaron las diferencias entre cada paquete y el resultado superó mis expectativas. El carro se siente más fresco y mucho más seguro. Totalmente recomendados.",
+      "resumen": "Excelente atención desde el primer contacto. El carro se siente más fresco y seguro."
+    },
+    {
+      "nombre": "Jazmín Solís",
+      "plataforma": "Facebook",
+      "texto_completo": "Quedé encantada con el trabajo. La instalación fue limpia, rápida y muy profesional. Se nota la calidad del material y ahora tengo más privacidad y protección. Definitivamente volvería a instalar con Glass Soler.",
+      "resumen": "Trabajo limpio, rápido y profesional. Se nota la calidad del material."
+    }
+  ],
+  "mensajes_marca": {
+    "slogan_principal": "¿Cuánto vale tu seguridad?",
+    "frase_valor_emocional": "En Glass Soler no solo instalamos polarizados de seguridad, instalamos confianza, tranquilidad y resultados que se notan desde el primer día.",
+    "frase_resultado": "Compartimos trabajos reales, procesos de instalación y resultados finales para que veas la calidad antes de decidir.",
+    "ganchos": [
+      "Barrera adicional contra robos, impactos y exposición solar extrema",
+      "100% importado desde Estados Unidos",
+      "Más de 50 vehículos instalados",
+      "98% de satisfacción de clientes"
+    ]
+  },
+  "meta_ads": {
+    "page_id": "860529027138846",
+    "ig_id": "17841480061381569",
+    "ad_account": "act_1101364862188478",
+    "whatsapp_number": "+50663790438"
+  }
+}
