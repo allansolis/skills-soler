@@ -21,8 +21,17 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-# Load .env
-ENV_PATH = Path(__file__).parent / ".env"
+# Load .env — buscar en multiples paths
+ENV_CANDIDATES = [
+    Path(__file__).parent.parent / ".env",
+    Path("C:/Users/Usuario/Desktop/Bot glass soler/.env"),
+    Path(__file__).parent / ".env",
+]
+ENV_PATH = next((p for p in ENV_CANDIDATES if p.exists()), None)
+if ENV_PATH is None:
+    print("[X] No se encontro .env en ninguna ubicacion conocida")
+    sys.exit(1)
+
 TOKEN = ""
 with open(ENV_PATH, "r", encoding="utf-8") as f:
     for line in f:
@@ -31,8 +40,10 @@ with open(ENV_PATH, "r", encoding="utf-8") as f:
             break
 
 if not TOKEN:
-    print("❌ META_ADS_TOKEN no encontrado en .env")
+    print("[X] META_ADS_TOKEN no encontrado en .env")
     sys.exit(1)
+
+print(f"[OK] Usando .env: {ENV_PATH}")
 
 API = "v25.0"
 GLASS_ACT = "act_1101364862188478"
