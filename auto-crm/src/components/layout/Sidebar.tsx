@@ -14,6 +14,7 @@ import {
   FileBarChart,
   Megaphone,
   Flame,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBusiness } from "@/context/BusinessContext";
@@ -26,6 +27,7 @@ const navItems = [
   { href: "/conversations", label: "Conversaciones", icon: MessageCircle },
   { href: "/leads", label: "Hot Leads", icon: Flame },
   { href: "/leads-kanban", label: "Kanban Leads", icon: Kanban },
+  { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/ads", label: "Meta Ads", icon: Megaphone },
   { href: "/loyalty", label: "Lealtad", icon: Crown },
   { href: "/reports", label: "Reportes", icon: FileBarChart },
