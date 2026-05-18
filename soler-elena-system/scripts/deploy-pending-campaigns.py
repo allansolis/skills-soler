@@ -123,6 +123,120 @@ def create_campaign(c: dict) -> dict:
     return api_post(f"{c['ad_account']}/campaigns", body)
 
 
+def create_adset(c: dict, campaign_id: str) -> dict:
+    """Crea adset linkado a la campaign. Maneja audience + destination + budget."""
+    aud = c["audience"]
+    targeting = {
+        "geo_locations": aud["geo_locations"],
+        "age_min": aud["age_min"],
+        "age_max": aud["age_max"],
+        "genders": aud.get("genders", [0]),
+        "publisher_platforms": aud.get("publisher_platforms", ["facebook", "instagram"]),
+        "targeting_automation": {"advantage_audience": aud.get("advantage_audience", 1)},
+    }
+    # Intereses si vienen como codes
+    if aud.get("interests_codes"):
+        targeting["interests"] = [
+            {"id": code, "name": aud["interests_labels"][i] if i < len(aud.get("interests_labels", [])) else ""}
+            for i, code in enumerate(aud["interests_codes"])
+        ]
+
+    body = {
+        "name": f"adset-{c['id']}",
+        "campaign_id": campaign_id,
+        "daily_budget": c["daily_budget_cents"],
+        "billing_event": c["billing_event"],
+        "optimization_goal": c["optimization_goal"],
+        "destination_type": "MESSENGER",
+        "promoted_object": json.dumps({"page_id": c["page_id"]}),
+        "targeting": json.dumps(targeting),
+        "status": "PAUSED",
+    }
+
+    # Catalog DPA: agregar product_set y vertical
+    if c.get("catalog_id") and c.get("product_set_id"):
+        body["promoted_object"] = json.dumps({
+            "page_id": c["page_id"],
+            "product_set_id": c["product_set_id"],
+        })
+
+    return api_post(f"{c['ad_account']}/adsets", body)
+
+
+def create_ad_creative(c: dict) -> dict:
+    """Crea ad creative con copy + page."""
+    copy = c["copy"]
+    obj_story_spec = {
+        "page_id": c["page_id"],
+        "link_data": {
+            "message": copy["primary_text"],
+            "name": copy.get("headline", ""),
+            "description": copy.get("description", ""),
+            "link": f"https://m.me/{c['page_id']}",
+            "call_to_action": {"type": copy.get("cta", "MESSAGE_PAGE")},
+        },
+    }
+    body = {
+        "name": f"creative-{c['id']}",
+        "object_story_spec": json.dumps(obj_story_spec),
+    }
+    return api_post(f"{c['ad_account']}/adcreatives", body)
+
+
+def create_ad(c: dict, adset_id: str, creative_id: str) -> dict:
+    """Crea el ad final linkando adset + creative."""
+    body = {
+        "name": f"ad-{c['id']}",
+        "adset_id": adset_id,
+        "creative": json.dumps({"creative_id": creative_id}),
+        "status": "PAUSED",
+    }
+    return api_post(f"{c['ad_account']}/ads", body)
+
+
+def deploy_full_pipeline(c: dict) -> dict:
+    """Crea campaign + adset + creative + ad. Retorna dict con IDs o errores."""
+    result = {"id": c["id"], "steps": []}
+
+    # 1. Campaign
+    r = create_campaign(c)
+    if "_error" in r:
+        result["error"] = f"campaign: {r['_error']}"
+        return result
+    campaign_id = r.get("id")
+    result["campaign_id"] = campaign_id
+    result["steps"].append(f"campaign={campaign_id}")
+
+    # 2. Adset
+    r = create_adset(c, campaign_id)
+    if "_error" in r:
+        result["error"] = f"adset: {r['_error']}"
+        return result
+    adset_id = r.get("id")
+    result["adset_id"] = adset_id
+    result["steps"].append(f"adset={adset_id}")
+
+    # 3. Ad Creative
+    r = create_ad_creative(c)
+    if "_error" in r:
+        result["error"] = f"creative: {r['_error']}"
+        return result
+    creative_id = r.get("id")
+    result["creative_id"] = creative_id
+    result["steps"].append(f"creative={creative_id}")
+
+    # 4. Ad
+    r = create_ad(c, adset_id, creative_id)
+    if "_error" in r:
+        result["error"] = f"ad: {r['_error']}"
+        return result
+    result["ad_id"] = r.get("id")
+    result["steps"].append(f"ad={r.get('id')}")
+    result["status"] = "PAUSED (review en Ads Manager antes de activar)"
+
+    return result
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--deploy", action="store_true", help="Ejecutar deploy real")
@@ -176,13 +290,18 @@ def main():
                 else:
                     print(f"  [OK] Reactivada campaign {c['campaign_existente']}")
             else:
-                # Create new
-                r = create_campaign(c)
-                if "_error" in r:
-                    print(f"  [X] Create error: {r['_error']}")
+                # Full pipeline: campaign + adset + creative + ad
+                result = deploy_full_pipeline(c)
+                if result.get("error"):
+                    print(f"  [X] {result['error']}")
+                    print(f"      Steps completados: {result['steps']}")
                 else:
-                    print(f"  [OK] Created campaign {r.get('id')} (status PAUSED — review before launch)")
-                    print(f"      Next: crear adset + ad manualmente o via API extra")
+                    print(f"  [OK] Pipeline completo:")
+                    print(f"      campaign_id  = {result['campaign_id']}")
+                    print(f"      adset_id     = {result['adset_id']}")
+                    print(f"      creative_id  = {result['creative_id']}")
+                    print(f"      ad_id        = {result['ad_id']}")
+                    print(f"      {result['status']}")
         else:
             print(f"  (dry-run, no se crea)")
 
