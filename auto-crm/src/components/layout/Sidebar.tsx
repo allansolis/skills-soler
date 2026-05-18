@@ -13,6 +13,7 @@ import {
   Crown,
   FileBarChart,
   Megaphone,
+  Flame,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBusiness } from "@/context/BusinessContext";
@@ -23,6 +24,7 @@ const navItems = [
   { href: "/contacts", label: "Contactos", icon: Users },
   { href: "/deals", label: "Deals", icon: Briefcase },
   { href: "/conversations", label: "Conversaciones", icon: MessageCircle },
+  { href: "/leads", label: "Hot Leads", icon: Flame },
   { href: "/ads", label: "Meta Ads", icon: Megaphone },
   { href: "/loyalty", label: "Lealtad", icon: Crown },
   { href: "/reports", label: "Reportes", icon: FileBarChart },

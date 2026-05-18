@@ -66,6 +66,13 @@ CRM_BASE_URL = os.getenv("CRM_BASE_URL", "http://localhost:3000")
 
 app = Flask(__name__)
 
+# Lead scoring + handoff endpoints
+try:
+    from lead_endpoints import register_lead_endpoints
+    register_lead_endpoints(app, business="glass_soler")
+except Exception as _e:  # noqa: BLE001
+    print(f"[warn] lead_endpoints no disponible: {_e}")
+
 # Cargar API key — fallback a lectura directa del .env si getenv falla
 _api_key = os.getenv("ANTHROPIC_API_KEY", "")
 if not _api_key:

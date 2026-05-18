@@ -1,0 +1,291 @@
+{
+  "name": "Inversiones Soler — Receive & Respond",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "inversiones-soler",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "id": "5cf3a4b5-c6d7-4e8f-9091-82738495aa01",
+      "webhookId": "6df4b5c6-d7e8-4f90-9192-83849506bb12"
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "88888888-8888-4888-8888-888888888888",
+              "name": "sender_id",
+              "value": "={{$json.body.entry[0].messaging[0].sender.id}}",
+              "type": "string"
+            },
+            {
+              "id": "99999999-9999-4999-8999-999999999999",
+              "name": "message_text",
+              "value": "={{$json.body.entry[0].messaging[0].message.text}}",
+              "type": "string"
+            },
+            {
+              "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+              "name": "page_id",
+              "value": "={{$json.body.entry[0].messaging[0].recipient.id}}",
+              "type": "string"
+            },
+            {
+              "id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+              "name": "timestamp",
+              "value": "={{$json.body.entry[0].messaging[0].timestamp}}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Extract Meta Payload",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300],
+      "id": "7ef5c6d7-e8f9-4091-9293-84950617cc23"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+              "leftValue": "={{$json.page_id}}",
+              "rightValue": "796480326889963",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "IF page_id is Inversiones Soler",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [680, 300],
+      "id": "8f06d7e8-f9a0-4192-9394-95061728dd34"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://courses-morning-tiny-performing.trycloudflare.com/api/conversations/upsert",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Webhook-Secret",
+              "value": "Ok2XkP56Q-P503zT1dJWtgsS_V1b9NeRze9NOL_bDLQ"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"channel\": \"messenger\",\n  \"sender_id\": \"{{$node[\"Set Extract Meta Payload\"].json.sender_id}}\",\n  \"message_text\": \"{{$node[\"Set Extract Meta Payload\"].json.message_text}}\",\n  \"business\": \"inversiones_soler\",\n  \"page_id\": \"{{$node[\"Set Extract Meta Payload\"].json.page_id}}\"\n}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "name": "CRM Upsert Conversation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 220],
+      "id": "9017e8f9-a0b1-4293-9495-06172839ee45"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://courses-morning-tiny-performing.trycloudflare.com/webhook",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Webhook-Secret",
+              "value": "Ok2XkP56Q-P503zT1dJWtgsS_V1b9NeRze9NOL_bDLQ"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"mensaje\": \"{{$node[\"Set Extract Meta Payload\"].json.message_text}}\",\n  \"user_id\": \"{{$node[\"Set Extract Meta Payload\"].json.sender_id}}\",\n  \"business\": \"inversiones_soler\",\n  \"port\": 5003\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "name": "Bot Dispatch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 220],
+      "id": "a128f9a0-b1c2-4394-9596-1728394aff56",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+              "name": "response_text",
+              "value": "={{$node[\"Bot Dispatch\"].json.respuesta || $node[\"Bot Dispatch\"].json.reply || 'Gracias por tu mensaje, en breve te atenderemos.'}}",
+              "type": "string"
+            },
+            {
+              "id": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+              "name": "recipient_id",
+              "value": "={{$node[\"Set Extract Meta Payload\"].json.sender_id}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Build Meta Payload",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1340, 220],
+      "id": "b239a0b1-c2d3-4495-9697-28394a5bb067"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v25.0/me/messages?access_token={{$env.META_ACCESS_TOKEN}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": { \"id\": \"{{$node[\"Set Build Meta Payload\"].json.recipient_id}}\" },\n  \"message\": { \"text\": \"{{$node[\"Set Build Meta Payload\"].json.response_text}}\" },\n  \"messaging_type\": \"RESPONSE\"\n}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "name": "Send Meta Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 220],
+      "id": "c34ab1c2-d3e4-4596-9798-394a5b6cc178"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Set Extract Meta Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Extract Meta Payload": {
+      "main": [
+        [
+          {
+            "node": "IF page_id is Inversiones Soler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF page_id is Inversiones Soler": {
+      "main": [
+        [
+          {
+            "node": "CRM Upsert Conversation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "CRM Upsert Conversation": {
+      "main": [
+        [
+          {
+            "node": "Bot Dispatch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bot Dispatch": {
+      "main": [
+        [
+          {
+            "node": "Set Build Meta Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Build Meta Payload": {
+      "main": [
+        [
+          {
+            "node": "Send Meta Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d45bc2d3-e4f5-4697-9899-4a5b6c7dd289",
+  "id": "e56cd3e4-f5a6-4798-999a-5b6c7d8ee39a",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": [
+    {
+      "name": "soler",
+      "id": "f67de4f5-a6b7-4899-9a9b-6c7d8e9ff4ab"
+    },
+    {
+      "name": "inversiones",
+      "id": "078ef5a6-b7c8-499a-9b9c-7d8e9f10a5bc"
+    }
+  ]
+}

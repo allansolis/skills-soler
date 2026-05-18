@@ -38,6 +38,13 @@ MAX_HISTORY_MESSAGES = int(os.getenv("MAX_HISTORY_MESSAGES", "30"))
 
 app = Flask(__name__)
 
+# Lead scoring + handoff endpoints
+try:
+    from lead_endpoints import register_lead_endpoints
+    register_lead_endpoints(app, business="autos_soler")
+except Exception as _e:  # noqa: BLE001
+    print(f"[warn] lead_endpoints no disponible: {_e}")
+
 # Cargar API key explícitamente desde .env
 _api_key = os.getenv("ANTHROPIC_API_KEY", "")
 if not _api_key:
