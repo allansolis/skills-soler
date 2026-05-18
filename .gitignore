@@ -1,0 +1,9 @@
+
+# Sesion 18 may 2026
+*.db-shm
+*.db-wal
+soler-elena-system/scripts/watch.log
+soler-elena-system/scripts/tunnel.log
+auto-crm/data/leads-statuses.json
+soler-elena-system/bots/data/
+
