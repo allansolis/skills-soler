@@ -372,8 +372,22 @@ def obtener_respuesta(id_usuario: str, mensaje_usuario: str) -> str:
     # System prompt generado en cada request desde KB JSON (permite hot-reload)
     system_prompt = construir_system_prompt()
 
+    # Model router (opcional): elige Haiku para mensajes simples, Sonnet para complejos
+    selected_model = CLAUDE_MODEL
+    try:
+        from model_router import route_model
+        route = route_model(
+            user_message=mensaje_usuario,
+            conversation_turns=len(mensajes) // 2,
+            business="esmeraldas_soler"
+        )
+        selected_model = route["model"]
+        logger.debug("model_router: %s (razon: %s)", selected_model, route["reason"])
+    except ImportError:
+        pass
+
     response = client.messages.create(
-        model=CLAUDE_MODEL,
+        model=selected_model,
         max_tokens=CLAUDE_MAX_TOKENS,
         system=system_prompt,
         messages=mensajes,

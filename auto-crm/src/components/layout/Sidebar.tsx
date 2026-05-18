@@ -25,6 +25,7 @@ const navItems = [
   { href: "/deals", label: "Deals", icon: Briefcase },
   { href: "/conversations", label: "Conversaciones", icon: MessageCircle },
   { href: "/leads", label: "Hot Leads", icon: Flame },
+  { href: "/leads-kanban", label: "Kanban Leads", icon: Kanban },
   { href: "/ads", label: "Meta Ads", icon: Megaphone },
   { href: "/loyalty", label: "Lealtad", icon: Crown },
   { href: "/reports", label: "Reportes", icon: FileBarChart },
