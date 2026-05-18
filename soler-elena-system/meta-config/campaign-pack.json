@@ -1,0 +1,215 @@
+{
+  "version": "1.0",
+  "creado": "2026-05-18",
+  "descripcion": "Pack de 6 campañas listas para deploy cuando META_ADS_TOKEN tenga ads_management",
+  "shared": {
+    "api_version": "v25.0",
+    "currency_crc": ["act_1101364862188478", "act_1868510380157902", "act_2385776465260628"]
+  },
+  "campanas": [
+    {
+      "id": "glass_robo_viral_v2",
+      "negocio": "glass_soler",
+      "ad_account": "act_1101364862188478",
+      "page_id": "860529027138846",
+      "tipo": "REACTIVAR",
+      "campaign_existente": "120246154256950130",
+      "adset_existente": "120246154261500130",
+      "creative_id": "1463945295210570",
+      "objetivo": "OUTCOME_ENGAGEMENT",
+      "optimization_goal": "CONVERSATIONS",
+      "billing_event": "IMPRESSIONS",
+      "destination": ["MESSAGING_MESSENGER", "MESSAGING_INSTAGRAM_DIRECT", "MESSAGING_WHATSAPP"],
+      "daily_budget_cents": 500000,
+      "daily_budget_label": "$5/dia",
+      "audience": {
+        "geo_locations": {"countries": ["CR"]},
+        "age_min": 25,
+        "age_max": 55,
+        "genders": [0],
+        "advantage_audience": 1,
+        "publisher_platforms": ["facebook", "instagram"]
+      },
+      "copy": {
+        "primary_text": "El bajonazo que te puede pasar HOY. 27,000 micras de proteccion entre tu familia y un asalto. DM POLARIZADO 👇",
+        "headline": "Tu vidrio resiste un martillazo?",
+        "description": "4 niveles desde 299,000 CRC. Garantia incluida.",
+        "cta": "MESSAGE_PAGE"
+      },
+      "post_pago_actions": [
+        "1. Verificar account_status=1 (ACTIVE)",
+        "2. PAUSE Aumento Seguidores (id pendiente)",
+        "3. RESUME esta campaña",
+        "4. Verificar creative video carga",
+        "5. Subir budget a $5/dia"
+      ]
+    },
+    {
+      "id": "glass_antes_despues",
+      "negocio": "glass_soler",
+      "ad_account": "act_1101364862188478",
+      "page_id": "860529027138846",
+      "tipo": "CREAR_NUEVA",
+      "objetivo": "OUTCOME_ENGAGEMENT",
+      "optimization_goal": "CONVERSATIONS",
+      "billing_event": "IMPRESSIONS",
+      "destination": ["MESSAGING_MESSENGER", "MESSAGING_INSTAGRAM_DIRECT", "MESSAGING_WHATSAPP"],
+      "daily_budget_cents": 300000,
+      "daily_budget_label": "$3/dia",
+      "audience": {
+        "geo_locations": {"countries": ["CR"]},
+        "age_min": 30,
+        "age_max": 55,
+        "genders": [0],
+        "advantage_audience": 1,
+        "interests_codes": ["6003107902433", "6003397425735"],
+        "interests_labels": ["Home security", "Personal safety"],
+        "publisher_platforms": ["facebook", "instagram"]
+      },
+      "copy": {
+        "primary_text": "Lo que ven los ladrones AHORA vs lo que veran DESPUES de tu polarizado de seguridad. La diferencia salva tu vehiculo. Cotiza por DM 👇",
+        "headline": "Que se ve adentro de tu carro?",
+        "description": "Cotiza por DM. 4 niveles segun tu necesidad",
+        "cta": "MESSAGE_PAGE"
+      },
+      "creative_brief": "Split vertical 50/50. Izquierda: vidrio claro mostrando interior (laptop, bolsa). Derecha: mismo vehiculo, vidrio negro/azulado opaco. Linea divisoria amarilla con 'ANTES | DESPUES'. Stat: '85% menos visibilidad interior'"
+    },
+    {
+      "id": "glass_familia_protegida",
+      "negocio": "glass_soler",
+      "ad_account": "act_1101364862188478",
+      "page_id": "860529027138846",
+      "tipo": "CREAR_NUEVA",
+      "objetivo": "OUTCOME_ENGAGEMENT",
+      "optimization_goal": "CONVERSATIONS",
+      "billing_event": "IMPRESSIONS",
+      "destination": ["MESSAGING_MESSENGER", "MESSAGING_INSTAGRAM_DIRECT", "MESSAGING_WHATSAPP"],
+      "daily_budget_cents": 300000,
+      "daily_budget_label": "$3/dia",
+      "audience": {
+        "geo_locations": {"countries": ["CR"]},
+        "age_min": 28,
+        "age_max": 50,
+        "genders": [0],
+        "advantage_audience": 1,
+        "behaviors_labels": ["Parents with children at home", "Family decision makers"],
+        "publisher_platforms": ["facebook", "instagram"]
+      },
+      "copy": {
+        "primary_text": "Cuando tus hijos van adentro del carro, MI VENTANA NO ES UN PUNTO DEBIL. Polarizado de seguridad para familias que viajan tranquilas. DM POLARIZADO 👇",
+        "headline": "Tu familia merece llegar segura",
+        "description": "Bloqueo UV 99% + proteccion antifragmento",
+        "cta": "MESSAGE_PAGE"
+      },
+      "creative_brief": "Plano emotivo: padre/madre subiendo ninos al carro polarizado. Tono calido. Texto sobreimpreso: 'Mi mejor proteccion es invisible'. Musica calida."
+    },
+    {
+      "id": "glass_martillazo",
+      "negocio": "glass_soler",
+      "ad_account": "act_1101364862188478",
+      "page_id": "860529027138846",
+      "tipo": "CREAR_NUEVA",
+      "objetivo": "OUTCOME_ENGAGEMENT",
+      "optimization_goal": "CONVERSATIONS",
+      "billing_event": "IMPRESSIONS",
+      "destination": ["MESSAGING_MESSENGER", "MESSAGING_INSTAGRAM_DIRECT", "MESSAGING_WHATSAPP"],
+      "daily_budget_cents": 300000,
+      "daily_budget_label": "$3/dia",
+      "audience": {
+        "geo_locations": {"countries": ["CR"]},
+        "age_min": 25,
+        "age_max": 55,
+        "genders": [0],
+        "advantage_audience": 1,
+        "publisher_platforms": ["facebook", "instagram"]
+      },
+      "copy": {
+        "primary_text": "Probamos golpear este vidrio con martillo. Mira lo que hace nuestra pelicula de seguridad. Cotiza tu paquete por DM 👇",
+        "headline": "Tu vidrio resiste un martillazo?",
+        "description": "4 niveles desde 299,000 CRC — Garantia incluida",
+        "cta": "MESSAGE_PAGE"
+      },
+      "creative_brief": "Plano cerrado parabrisas oscurecido. Mano con martillo a 45 grados, congelado en impacto. Slowmo. Texto bottom: 'PROBADO contra martillo'. Logo esquina inferior derecha."
+    },
+    {
+      "id": "glass_catalog_dpa",
+      "negocio": "glass_soler",
+      "ad_account": "act_1101364862188478",
+      "page_id": "860529027138846",
+      "tipo": "CREAR_NUEVA",
+      "objetivo": "OUTCOME_ENGAGEMENT",
+      "optimization_goal": "CONVERSATIONS",
+      "billing_event": "IMPRESSIONS",
+      "destination": ["MESSAGING_MESSENGER", "MESSAGING_INSTAGRAM_DIRECT", "MESSAGING_WHATSAPP"],
+      "catalog_id": "1670886954032475",
+      "product_set_id": "1303614245207196",
+      "product_set_nombre": "Todos",
+      "daily_budget_cents": 400000,
+      "daily_budget_label": "$4/dia",
+      "audience": {
+        "geo_locations": {"countries": ["CR"]},
+        "age_min": 25,
+        "age_max": 55,
+        "genders": [0],
+        "advantage_audience": 1,
+        "publisher_platforms": ["facebook", "instagram"]
+      },
+      "copy": {
+        "primary_text": "4 paquetes de polarizado de seguridad. Desde 299,000 CRC con garantia. Que paquete necesita tu vehiculo? DM 👇",
+        "headline": "{{product.name}}",
+        "description": "desde {{product.price}}",
+        "cta": "MESSAGE_PAGE",
+        "card_footer": "{{product.name}} — desde {{product.price}}"
+      },
+      "creative_brief": "DPA carousel automatico - Meta muestra los 4 productos del set 'Todos'. Cada producto su imagen propia desde el feed del catalog."
+    },
+    {
+      "id": "autos_ultimos_3_publicados",
+      "negocio": "autos_soler",
+      "ad_account": "act_2385776465260628",
+      "page_id": "100123132505557",
+      "tipo": "CREAR_NUEVA",
+      "objetivo": "OUTCOME_ENGAGEMENT",
+      "optimization_goal": "CONVERSATIONS",
+      "billing_event": "IMPRESSIONS",
+      "destination": ["MESSAGING_MESSENGER", "MESSAGING_INSTAGRAM_DIRECT"],
+      "catalog_id": "955793357293894",
+      "product_set_id_pendiente": "Crear product set 'Ultimos 3' filtrado por created_at desc limit 3",
+      "daily_budget_cents": 250000,
+      "daily_budget_label": "$2.5/dia",
+      "audience": {
+        "geo_locations": {"countries": ["CR"]},
+        "age_min": 25,
+        "age_max": 55,
+        "genders": [0],
+        "advantage_audience": 1,
+        "interests_labels": ["Cars", "Vehicles", "Auto trader", "Automotive"],
+        "publisher_platforms": ["facebook", "instagram"]
+      },
+      "copy": {
+        "primary_text": "Estos son los ultimos 3 autos que publicamos en Autos Soler. Calidad revisada, precios justos, financiamiento disponible. Pregunta por DM 👇",
+        "headline": "Ultimos 3 autos disponibles",
+        "description": "Revisados — financiamiento — entrega rapida",
+        "cta": "MESSAGE_PAGE"
+      },
+      "creative_brief": "DPA con los 3 vehiculos mas recientes. Cada card muestra: foto, marca/modelo/ano, kilometraje, precio. CTA prominente 'Pregunta por DM'."
+    }
+  ],
+  "totales": {
+    "campanas_glass": 5,
+    "campanas_autos": 1,
+    "presupuesto_diario_total_cents": 2050000,
+    "presupuesto_diario_total_label": "$20.5/dia ($615/mes)"
+  },
+  "checklist_pre_deploy": [
+    "META_ADS_TOKEN tiene ads_management scope",
+    "Cuenta Glass (act_1101364862188478) status=ACTIVE (no UNSETTLED)",
+    "Saldo Glass >= USD 100",
+    "Saldo Autos (act_2385776465260628) >= CRC 15,000",
+    "Catalog Glass (1670886954032475) tiene 4 productos publicados",
+    "Product set 'Todos' (1303614245207196) existe",
+    "Catalog Autos (955793357293894) tiene >= 3 vehiculos publicados",
+    "Page Glass (860529027138846) con WhatsApp conectado",
+    "Page Autos (100123132505557) con IG Business vinculado (PENDIENTE)"
+  ]
+}
