@@ -221,8 +221,15 @@ def chat():
     if not mensaje:
         return jsonify({"error": "Mensaje vacio"}), 400
     try:
+        lead_info = None
+        try:
+            from lead_endpoints import auto_score
+            lead_info = auto_score(id_usuario, mensaje, "inversiones_soler")
+        except Exception as _e:
+            logger.warning("auto_score fallo: %s", _e)
+
         respuesta = obtener_respuesta(id_usuario, mensaje)
-        return jsonify({"respuesta": respuesta, "reply": respuesta})
+        return jsonify({"respuesta": respuesta, "reply": respuesta, "lead": lead_info})
     except Exception as e:
         logger.exception("Error: %s", e)
         return jsonify({"error": "Error interno"}), 500

@@ -530,6 +530,14 @@ def chat_directo():
     if len(mensaje) > MAX_MESSAGE_LENGTH:
         return jsonify({"error": f"Mensaje muy largo (max {MAX_MESSAGE_LENGTH} caracteres)"}), 400
 
+    # Auto-score + posibles notificaciones
+    try:
+        from lead_endpoints import auto_score
+        lead_info = auto_score(id_usuario, mensaje, "esmeraldas_soler")
+    except Exception as _e:
+        logger.warning("auto_score fallo: %s", _e)
+        lead_info = None
+
     respuesta = obtener_respuesta(id_usuario, mensaje)
     with _lock:
         turnos = len(conversaciones.get(id_usuario, [])) // 2
@@ -537,7 +545,8 @@ def chat_directo():
         "id": id_usuario,
         "mensaje": mensaje,
         "respuesta": respuesta,
-        "turnos": turnos
+        "turnos": turnos,
+        "lead": lead_info,
     })
 
 

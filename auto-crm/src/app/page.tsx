@@ -9,6 +9,7 @@ import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { SourceChart } from "@/components/dashboard/SourceChart";
 import { LeadTemperaturePanel } from "@/components/dashboard/LeadTemperaturePanel";
 import { MetaChannelStats } from "@/components/dashboard/MetaChannelStats";
+import { MultiBusinessLeadsWidget } from "@/components/dashboard/MultiBusinessLeadsWidget";
 import { SOURCE_LABELS } from "@/lib/constants";
 import type { DashboardStats, SourceDistribution, MonthlyMetric } from "@/types";
 
@@ -224,6 +225,11 @@ export default function DashboardPage() {
           warm={stats.warmLeads}
           cold={stats.coldLeads}
         />
+      </div>
+
+      {/* Fila 3.5: Multi-business leads (4 Elenas) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <MultiBusinessLeadsWidget />
       </div>
 
       {/* Fila 4: Activity */}
