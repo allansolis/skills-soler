@@ -157,8 +157,20 @@ def obtener_respuesta(id_usuario: str, mensaje_usuario: str) -> str:
         conversaciones[id_usuario].append({"role": "user", "content": mensaje_usuario})
         mensajes = list(conversaciones[id_usuario])
 
+    selected_model = CLAUDE_MODEL
+    try:
+        from model_router import route_model
+        route = route_model(
+            user_message=mensaje_usuario,
+            conversation_turns=len(mensajes) // 2,
+            business="inversiones_soler"
+        )
+        selected_model = route["model"]
+    except ImportError:
+        pass
+
     response = client.messages.create(
-        model=CLAUDE_MODEL,
+        model=selected_model,
         max_tokens=CLAUDE_MAX_TOKENS,
         system=construir_system_prompt(),
         messages=mensajes,

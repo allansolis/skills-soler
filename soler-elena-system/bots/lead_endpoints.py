@@ -29,12 +29,22 @@ except ImportError:
 
 def auto_score(user_id: str, message: str, business: str) -> dict:
     """
-    Auto-score un mensaje y dispara notificaciones si corresponde.
+    Auto-score un mensaje, enriquece campos, y dispara notificaciones si corresponde.
     Llamar desde el handler de chat/webhook de cada bot.
 
-    Returns dict con score_actual, signals, needs_handoff, hot_lead.
+    Returns dict con score_actual, signals, needs_handoff, hot_lead, enriched_fields.
     """
     result = lead_scoring.score_message(user_id, message, business)
+
+    # Lead enrichment: extrae name/phone/vehicle/budget/etc
+    try:
+        import lead_enrichment
+        enriched = lead_enrichment.enrich_lead(user_id, message, business)
+        result["enriched_fields"] = enriched.get("fields", {})
+    except ImportError:
+        pass
+    except Exception as _e:
+        pass
 
     if not _HAS_NOTIFICATIONS:
         return result
@@ -131,6 +141,40 @@ def register_lead_endpoints(app, business: str):
             return jsonify({"error": "Falta user_id"}), 400
         ok = lead_scoring.reset_user(user_id, business)
         return jsonify({"reset": ok, "user_id": user_id, "business": business})
+
+    @app.route("/leads/enriched", methods=["GET"])
+    def _get_enriched_leads():
+        """Lista de leads con datos enriquecidos (nombre, tel, vehiculo, etc.)."""
+        if not _check_auth():
+            return jsonify({"error": "No autorizado"}), 401
+        try:
+            import lead_enrichment
+            user_id = request.args.get("user_id")
+            if user_id:
+                return jsonify(lead_enrichment.get_enriched(user_id, business))
+            leads = lead_enrichment.list_enriched(business)
+            return jsonify({"business": business, "count": len(leads), "leads": leads})
+        except ImportError:
+            return jsonify({"error": "lead_enrichment no disponible"}), 503
+
+    @app.route("/leads/search", methods=["GET"])
+    def _search_leads():
+        """Busca leads por nombre o telefono."""
+        if not _check_auth():
+            return jsonify({"error": "No autorizado"}), 401
+        try:
+            import lead_enrichment
+            name = request.args.get("name")
+            phone = request.args.get("phone")
+            if name:
+                results = lead_enrichment.search_by_name(name)
+            elif phone:
+                results = lead_enrichment.search_by_phone(phone)
+            else:
+                return jsonify({"error": "Falta name o phone"}), 400
+            return jsonify({"count": len(results), "results": results})
+        except ImportError:
+            return jsonify({"error": "lead_enrichment no disponible"}), 503
 
     @app.route("/leads/export", methods=["GET"])
     def _export_leads():

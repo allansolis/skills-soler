@@ -165,8 +165,21 @@ def obtener_respuesta(id_usuario: str, mensaje_usuario: str) -> str:
         mensajes = list(conversaciones[id_usuario])
 
     system_prompt = construir_system_prompt()
+
+    selected_model = CLAUDE_MODEL
+    try:
+        from model_router import route_model
+        route = route_model(
+            user_message=mensaje_usuario,
+            conversation_turns=len(mensajes) // 2,
+            business="autos_soler"
+        )
+        selected_model = route["model"]
+    except ImportError:
+        pass
+
     response = client.messages.create(
-        model=CLAUDE_MODEL,
+        model=selected_model,
         max_tokens=CLAUDE_MAX_TOKENS,
         system=system_prompt,
         messages=mensajes,

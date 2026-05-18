@@ -470,9 +470,22 @@ def obtener_respuesta(
         logger.error("Cliente Anthropic no inicializado — falta ANTHROPIC_API_KEY")
         return "⚠️ El bot no está configurado correctamente. Contacte al administrador."
 
+    # Model router: Haiku para mensajes simples, Sonnet para complejos
+    selected_model = CLAUDE_MODEL
+    try:
+        from model_router import route_model
+        route = route_model(
+            user_message=mensaje_usuario,
+            conversation_turns=len(mensajes) // 2,
+            business="glass_soler"
+        )
+        selected_model = route["model"]
+    except ImportError:
+        pass
+
     try:
         response = client.messages.create(
-            model=CLAUDE_MODEL,
+            model=selected_model,
             max_tokens=CLAUDE_MAX_TOKENS,
             system=system_prompt,
             messages=mensajes,
