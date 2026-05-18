@@ -1,0 +1,246 @@
+{
+  "name": "Agente 7 - Actualizador de KB Inteligente",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "id": "trigger-cada-6-horas",
+      "name": "Cada 6 horas",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 480]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/conversations/recent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "since_hours", "value": "6" },
+            { "name": "limit", "value": "500" }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "retry": { "limit": 3, "waitBetween": 2000 }
+        }
+      },
+      "id": "get-conversaciones",
+      "name": "GET Conversaciones Recientes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 360],
+      "credentials": {
+        "httpHeaderAuth": { "id": "zolutium-api", "name": "Zolutium API" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/contacts/active",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "status", "value": "active" },
+            { "name": "limit", "value": "1000" }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "retry": { "limit": 3, "waitBetween": 2000 }
+        }
+      },
+      "id": "get-contactos",
+      "name": "GET Contactos Activos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 620],
+      "credentials": {
+        "httpHeaderAuth": { "id": "zolutium-api", "name": "Zolutium API" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combina conversaciones + contactos en un payload normalizado para Claude\nconst conversaciones = $input.first().json?.data || [];\nconst contactos = $input.last().json?.data || [];\n\nconst contactosPorId = new Map(contactos.map(c => [c.id, c]));\n\nconst dataset = conversaciones.map(conv => ({\n  id: conv.id,\n  fecha: conv.created_at,\n  canal: conv.channel,\n  texto: (conv.messages || []).map(m => `[${m.role}] ${m.content}`).join('\\n'),\n  contacto: contactosPorId.get(conv.contact_id) || null,\n  tags: conv.tags || [],\n  resuelta: conv.resolved === true\n}));\n\nconst stats = {\n  total_conversaciones: dataset.length,\n  total_contactos: contactos.length,\n  resueltas: dataset.filter(d => d.resuelta).length,\n  canales: [...new Set(dataset.map(d => d.canal))],\n  ventana_horas: 6\n};\n\nreturn [{ json: { dataset, stats } }];"
+      },
+      "id": "preparar-datos",
+      "name": "Preparar Datos Analisis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [740, 480]
+    },
+    {
+      "parameters": {
+        "modelId": "claude-opus-4-7",
+        "messages": {
+          "values": [
+            {
+              "role": "user",
+              "content": "=Eres analista de la base de conocimiento del CRM BAC Loyalty. Analiza el siguiente lote de conversaciones recientes y devuelve un JSON con: patrones_detectados (array), nuevas_faqs (array de {pregunta, respuesta_sugerida, evidencia_ids}), brechas_kb (array), acciones_recomendadas (array), confianza (0-1).\\n\\nSolo devuelve JSON válido, sin markdown.\\n\\nDATOS:\\n{{ JSON.stringify($json) }}"
+            }
+          ]
+        },
+        "options": {
+          "maxTokensToSample": 4096,
+          "temperature": 0.2
+        }
+      },
+      "id": "claude-analiza",
+      "name": "Claude Analiza Patrones",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [1020, 480],
+      "credentials": {
+        "anthropicApi": { "id": "anthropic-bac", "name": "Anthropic BAC" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parsea la salida de Claude y la prepara para 3 destinos\nlet analisis;\ntry {\n  const raw = $input.first().json?.content?.[0]?.text || $input.first().json?.text || '{}';\n  analisis = JSON.parse(raw);\n} catch (e) {\n  throw new Error('Claude no devolvió JSON válido: ' + e.message);\n}\n\nconst timestamp = new Date().toISOString();\nconst batchId = `kb-${timestamp.slice(0,10)}-${Date.now()}`;\n\nreturn [{\n  json: {\n    batch_id: batchId,\n    timestamp,\n    confianza: analisis.confianza ?? 0,\n    nuevas_faqs: analisis.nuevas_faqs ?? [],\n    patrones: analisis.patrones_detectados ?? [],\n    brechas: analisis.brechas_kb ?? [],\n    acciones: analisis.acciones_recomendadas ?? [],\n    texto_plano: [\n      `# Análisis KB ${timestamp}`,\n      `## Patrones`, ...(analisis.patrones_detectados || []).map(p => `- ${p}`),\n      `## Nuevas FAQs`, ...(analisis.nuevas_faqs || []).map(f => `### ${f.pregunta}\\n${f.respuesta_sugerida}`),\n      `## Brechas`, ...(analisis.brechas_kb || []).map(b => `- ${b}`)\n    ].join('\\n')\n  }\n}];"
+      },
+      "id": "formatear-kb",
+      "name": "Formatear para KB",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 480]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/kb/aggregate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"batch_id\": \"{{$json.batch_id}}\",\n  \"faqs\": {{ JSON.stringify($json.nuevas_faqs) }},\n  \"patrones\": {{ JSON.stringify($json.patrones) }},\n  \"confianza\": {{$json.confianza}}\n}",
+        "options": {
+          "timeout": 60000,
+          "retry": { "limit": 3, "waitBetween": 5000 }
+        }
+      },
+      "id": "push-kb-zolutium",
+      "name": "Push KB Agregado a Zolutium",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1580, 280],
+      "credentials": {
+        "httpHeaderAuth": { "id": "zolutium-api", "name": "Zolutium API" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/kb/local/update",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"batch_id\": \"{{$json.batch_id}}\",\n  \"brechas\": {{ JSON.stringify($json.brechas) }},\n  \"acciones\": {{ JSON.stringify($json.acciones) }}\n}",
+        "options": {
+          "timeout": 60000,
+          "retry": { "limit": 3, "waitBetween": 5000 }
+        }
+      },
+      "id": "actualizar-kb-local",
+      "name": "Actualizar la base de conocimiento local",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1580, 480],
+      "credentials": {
+        "httpHeaderAuth": { "id": "zolutium-api", "name": "Zolutium API" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepara texto markdown para almacenar como documento KB en Zolutium\nconst j = $input.first().json;\nreturn [{\n  json: {\n    batch_id: j.batch_id,\n    titulo: `Análisis KB ${j.timestamp.slice(0,10)} ${j.timestamp.slice(11,16)}`,\n    contenido_md: j.texto_plano,\n    tipo: 'kb_analysis',\n    metadata: { confianza: j.confianza, ventana: '6h' }\n  }\n}];"
+      },
+      "id": "preparar-texto-kb",
+      "name": "Preparar Texto KB Zolutium",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1580, 700]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/kb/documents",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"batch_id\": \"{{$json.batch_id}}\",\n  \"titulo\": \"{{$json.titulo}}\",\n  \"contenido\": {{ JSON.stringify($json.contenido_md) }},\n  \"tipo\": \"{{$json.tipo}}\",\n  \"metadata\": {{ JSON.stringify($json.metadata) }}\n}",
+        "options": {
+          "timeout": 60000,
+          "retry": { "limit": 3, "waitBetween": 5000 }
+        }
+      },
+      "id": "guardar-analisis-zolutium",
+      "name": "Guardar Análisis en Zolutium",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1860, 700],
+      "credentials": {
+        "httpHeaderAuth": { "id": "zolutium-api", "name": "Zolutium API" }
+      }
+    }
+  ],
+  "connections": {
+    "Cada 6 horas": {
+      "main": [
+        [
+          { "node": "GET Conversaciones Recientes", "type": "main", "index": 0 },
+          { "node": "GET Contactos Activos", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "GET Conversaciones Recientes": {
+      "main": [[{ "node": "Preparar Datos Analisis", "type": "main", "index": 0 }]]
+    },
+    "GET Contactos Activos": {
+      "main": [[{ "node": "Preparar Datos Analisis", "type": "main", "index": 0 }]]
+    },
+    "Preparar Datos Analisis": {
+      "main": [[{ "node": "Claude Analiza Patrones", "type": "main", "index": 0 }]]
+    },
+    "Claude Analiza Patrones": {
+      "main": [[{ "node": "Formatear para KB", "type": "main", "index": 0 }]]
+    },
+    "Formatear para KB": {
+      "main": [
+        [
+          { "node": "Push KB Agregado a Zolutium", "type": "main", "index": 0 },
+          { "node": "Actualizar la base de conocimiento local", "type": "main", "index": 0 },
+          { "node": "Preparar Texto KB Zolutium", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Preparar Texto KB Zolutium": {
+      "main": [[{ "node": "Guardar Análisis en Zolutium", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "tags": [
+    { "name": "bac-loyalty" },
+    { "name": "kb" },
+    { "name": "agente-7" }
+  ]
+}
