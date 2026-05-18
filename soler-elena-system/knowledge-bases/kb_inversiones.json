@@ -35,49 +35,136 @@
     {
       "categoria": "Compra de propiedad para vivir",
       "descripcion": "Te ayudamos a encontrar tu casa o apartamento ideal según presupuesto, zona y necesidades familiares.",
-      "incluye": ["Asesoría de selección", "Verificación legal Registro Nacional", "Negociación de precio", "Gestión de financiamiento si necesitas"]
+      "incluye": [
+        "Asesoría de selección",
+        "Verificación legal Registro Nacional",
+        "Negociación de precio",
+        "Gestión de financiamiento si necesitas"
+      ]
     },
     {
       "categoria": "Inversión para renta pasiva",
       "descripcion": "Identificamos propiedades con mejor ROI por alquiler. Análisis de zona, demanda, y proyección de retorno.",
-      "incluye": ["Análisis financiero de renta vs inversión", "Identificación de zonas en plusvalía", "Gestión completa del arrendamiento (opcional)"]
+      "incluye": [
+        "Análisis financiero de renta vs inversión",
+        "Identificación de zonas en plusvalía",
+        "Gestión completa del arrendamiento (opcional)"
+      ]
     },
     {
       "categoria": "Inversión para reventa (flip)",
       "descripcion": "Propiedades subvaluadas con potencial de remodelación + reventa.",
-      "incluye": ["Análisis de potencial", "Conexión con remodeladores", "Estrategia de salida y reventa"]
+      "incluye": [
+        "Análisis de potencial",
+        "Conexión con remodeladores",
+        "Estrategia de salida y reventa"
+      ]
     },
     {
       "categoria": "Venta de tu propiedad",
       "descripcion": "Comercializamos tu propiedad con estrategia digital + red de inversionistas.",
-      "incluye": ["Avalúo gratis", "Fotografía profesional", "Marketing redes + portales", "Comisión competitiva 3-5%"]
+      "incluye": [
+        "Avalúo gratis",
+        "Fotografía profesional",
+        "Marketing redes + portales",
+        "Comisión competitiva 3-5%"
+      ]
     },
     {
       "categoria": "Trámites legales",
       "descripcion": "Coordinamos abogado, notario, escrituras, traspasos.",
-      "incluye": ["Estudio registral", "Redacción contratos", "Inscripción registro"]
+      "incluye": [
+        "Estudio registral",
+        "Redacción contratos",
+        "Inscripción registro"
+      ]
     }
   ],
   "tipos_inversion": [
-    {"tipo": "Apartamento renta urbana", "rango_precio": "₡30M - ₡80M", "roi_estimado": "6-10% anual", "ideal_para": "Inversionista principiante"},
-    {"tipo": "Casa familiar suburbana", "rango_precio": "₡50M - ₡150M", "roi_estimado": "8-12% anual", "ideal_para": "Vivir + plusvalía"},
-    {"tipo": "Local comercial", "rango_precio": "₡40M - ₡200M", "roi_estimado": "10-14% anual", "ideal_para": "Inversionista experimentado"},
-    {"tipo": "Lote para desarrollo", "rango_precio": "₡20M - ₡100M", "roi_estimado": "Alto, larga maduración", "ideal_para": "Desarrolladores / patient capital"},
-    {"tipo": "Casa playa Airbnb", "rango_precio": "₡80M - ₡300M", "roi_estimado": "12-20% anual", "ideal_para": "Inversionista con tolerancia variabilidad"}
+    {
+      "tipo": "Apartamento renta urbana",
+      "rango_precio": "₡30M - ₡80M",
+      "roi_estimado": "6-10% anual",
+      "ideal_para": "Inversionista principiante"
+    },
+    {
+      "tipo": "Casa familiar suburbana",
+      "rango_precio": "₡50M - ₡150M",
+      "roi_estimado": "8-12% anual",
+      "ideal_para": "Vivir + plusvalía"
+    },
+    {
+      "tipo": "Local comercial",
+      "rango_precio": "₡40M - ₡200M",
+      "roi_estimado": "10-14% anual",
+      "ideal_para": "Inversionista experimentado"
+    },
+    {
+      "tipo": "Lote para desarrollo",
+      "rango_precio": "₡20M - ₡100M",
+      "roi_estimado": "Alto, larga maduración",
+      "ideal_para": "Desarrolladores / patient capital"
+    },
+    {
+      "tipo": "Casa playa Airbnb",
+      "rango_precio": "₡80M - ₡300M",
+      "roi_estimado": "12-20% anual",
+      "ideal_para": "Inversionista con tolerancia variabilidad"
+    }
   ],
   "formas_pago": {
-    "honorarios_compra": {"frase": "Comisión de búsqueda 3% sobre precio compra. Solo se cobra al cierre."},
-    "honorarios_venta": {"frase": "Comisión venta 4-5% sobre precio venta. Negociable según volumen."},
-    "consulta_inicial": {"frase": "Primera consulta gratuita 30 min. Sin compromiso."},
-    "sinpe": {"numero": "87530064", "frase": "SINPE 87530064 a nombre de Jazmín Solís Alvarado"},
-    "transferencia": {"cuenta": "CR97081400011020057029", "frase": "Cuenta colones: CR97081400011020057029"}
+    "honorarios_compra": {
+      "frase": "Comisión de búsqueda 3% sobre precio compra. Solo se cobra al cierre."
+    },
+    "honorarios_venta": {
+      "frase": "Comisión venta 4-5% sobre precio venta. Negociable según volumen."
+    },
+    "consulta_inicial": {
+      "frase": "Primera consulta gratuita 30 min. Sin compromiso."
+    },
+    "sinpe": {
+      "numero": "87530064",
+      "frase": "SINPE 87530064 a nombre de Jazmín Solís Alvarado"
+    },
+    "transferencia": {
+      "cuenta": "CR97081400011020057029",
+      "frase": "Cuenta colones: CR97081400011020057029"
+    }
   },
   "flujo_venta": [
-    {"paso": 1, "nombre": "Saludo + Calificación", "ejemplos": ["Hola, soy Elena de Inversiones Soler 🏘️ ¿Con quién tengo el gusto?", "¿Buscas comprar para vivir, vender una propiedad o invertir?"]},
-    {"paso": 2, "nombre": "Discovery", "preguntas": ["¿Qué presupuesto tienes en mente?", "¿Es tu primera inversión inmobiliaria o ya tienes experiencia?", "¿Para vivir, alquilar o reventa?", "¿Zona preferida?"]},
-    {"paso": 3, "nombre": "Educación / Recomendación", "ejemplo": "Para tu perfil te recomiendo X tipo de inversión. Te paso un análisis comparativo de 2-3 opciones."},
-    {"paso": 4, "nombre": "Cierre por consultoría", "ejemplo": "¿Te queda bien una llamada de 30 min para hacer un análisis a medida? Sin compromiso."},
-    {"paso": 5, "nombre": "Para serios", "ejemplo": "Necesito conocer tu meta financiera y plazo. Con eso te diseño una estrategia de inversión a 3-5 años."}
+    {
+      "paso": 1,
+      "nombre": "Saludo + Calificación",
+      "ejemplos": [
+        "Hola, soy Elena de Inversiones Soler 🏘️ ¿Con quién tengo el gusto?",
+        "¿Buscas comprar para vivir, vender una propiedad o invertir?"
+      ]
+    },
+    {
+      "paso": 2,
+      "nombre": "Discovery",
+      "preguntas": [
+        "¿Qué presupuesto tienes en mente?",
+        "¿Es tu primera inversión inmobiliaria o ya tienes experiencia?",
+        "¿Para vivir, alquilar o reventa?",
+        "¿Zona preferida?"
+      ]
+    },
+    {
+      "paso": 3,
+      "nombre": "Educación / Recomendación",
+      "ejemplo": "Para tu perfil te recomiendo X tipo de inversión. Te paso un análisis comparativo de 2-3 opciones."
+    },
+    {
+      "paso": 4,
+      "nombre": "Cierre por consultoría",
+      "ejemplo": "¿Te queda bien una llamada de 30 min para hacer un análisis a medida? Sin compromiso."
+    },
+    {
+      "paso": 5,
+      "nombre": "Para serios",
+      "ejemplo": "Necesito conocer tu meta financiera y plazo. Con eso te diseño una estrategia de inversión a 3-5 años."
+    }
   ],
   "tipos_cliente": {
     "primer_inversionista": "Joven 25-35 con ahorros. Educar sobre apalancamiento financiero. Empezar con apartamento renta.",
@@ -87,11 +174,26 @@
     "vendedor": "Quiere vender propiedad. Foco velocidad + precio justo. Avalúo y plan de comercialización."
   },
   "objeciones": [
-    {"objecion": "Necesito pensar la inversión", "respuesta": "Por supuesto, no es decisión rápida. ¿Te ayudaría que te envíe un análisis comparativo de 3 opciones para que evalúes en casa?"},
-    {"objecion": "No tengo todo el monto", "respuesta": "Trabajamos con financiamiento bancario. Con buen historial puedes invertir con 20-30% de cuota inicial."},
-    {"objecion": "¿Cuánto cobran de comisión?", "respuesta": "Compra: 3% sobre precio cierre. Venta: 4-5%. La consulta inicial es GRATIS."},
-    {"objecion": "El mercado está malo", "respuesta": "En realidad CR mantiene plusvalía estable 5-7% anual. Hay zonas creciendo más. Te puedo mostrar análisis."},
-    {"objecion": "Otros me ofrecen más barato", "respuesta": "Está bien comparar. Pregunta qué incluye su servicio: ¿hacen análisis financiero? ¿verifican legalmente? ¿gestionan arrendamiento? Calidad cuesta."}
+    {
+      "objecion": "Necesito pensar la inversión",
+      "respuesta": "Por supuesto, no es decisión rápida. ¿Te ayudaría que te envíe un análisis comparativo de 3 opciones para que evalúes en casa?"
+    },
+    {
+      "objecion": "No tengo todo el monto",
+      "respuesta": "Trabajamos con financiamiento bancario. Con buen historial puedes invertir con 20-30% de cuota inicial."
+    },
+    {
+      "objecion": "¿Cuánto cobran de comisión?",
+      "respuesta": "Compra: 3% sobre precio cierre. Venta: 4-5%. La consulta inicial es GRATIS."
+    },
+    {
+      "objecion": "El mercado está malo",
+      "respuesta": "En realidad CR mantiene plusvalía estable 5-7% anual. Hay zonas creciendo más. Te puedo mostrar análisis."
+    },
+    {
+      "objecion": "Otros me ofrecen más barato",
+      "respuesta": "Está bien comparar. Pregunta qué incluye su servicio: ¿hacen análisis financiero? ¿verifican legalmente? ¿gestionan arrendamiento? Calidad cuesta."
+    }
   ],
   "identidad": {
     "tratamiento": "usted (más profesional para temas financieros)",
@@ -119,11 +221,54 @@
     ]
   },
   "faq": [
-    {"pregunta": "¿Cuánto cuesta la consulta inicial?", "respuesta": "Es GRATIS. 30 minutos para entender tu caso y definir si podemos ayudarte."},
-    {"pregunta": "¿Verifican legalmente las propiedades?", "respuesta": "Sí, estudio registral completo antes de cualquier oferta. No queremos sorpresas."},
-    {"pregunta": "¿Trabajan financiamiento?", "respuesta": "Sí, conectamos con BAC, BCR, Promerica y Davivienda. Pre-aprobación 48-72h."},
-    {"pregunta": "¿También gestionan arrendamientos?", "respuesta": "Sí, para nuestros clientes inversionistas. Comisión 8-10% del alquiler mensual."},
-    {"pregunta": "¿Qué zona recomiendan invertir?", "respuesta": "Depende de tu perfil. GAM apartamento renta = estable. Costa Pacífico Airbnb = mejor ROI pero más volátil. Te ayudo a elegir."}
+    {
+      "pregunta": "¿Cuánto cuesta la consulta inicial?",
+      "respuesta": "Es GRATIS. 30 minutos para entender tu caso y definir si podemos ayudarte."
+    },
+    {
+      "pregunta": "¿Verifican legalmente las propiedades?",
+      "respuesta": "Sí, estudio registral completo antes de cualquier oferta. No queremos sorpresas."
+    },
+    {
+      "pregunta": "¿Trabajan financiamiento?",
+      "respuesta": "Sí, conectamos con BAC, BCR, Promerica y Davivienda. Pre-aprobación 48-72h."
+    },
+    {
+      "pregunta": "¿También gestionan arrendamientos?",
+      "respuesta": "Sí, para nuestros clientes inversionistas. Comisión 8-10% del alquiler mensual."
+    },
+    {
+      "pregunta": "¿Qué zona recomiendan invertir?",
+      "respuesta": "Depende de tu perfil. GAM apartamento renta = estable. Costa Pacífico Airbnb = mejor ROI pero más volátil. Te ayudo a elegir."
+    },
+    {
+      "pregunta": "Cual es la rentabilidad promedio de inversion inmobiliaria en CR?",
+      "respuesta": "Depende del tipo. Renta tradicional: 5-7% anual neto. Airbnb en zonas turisticas: 8-15% anual. Flip (compra-remodela-vende): 15-30% en 6-12 meses. Plusvalia largo plazo: 5-10% anual. Nosotros analizamos cada opcion para usted."
+    },
+    {
+      "pregunta": "Necesito ser residente para comprar propiedad?",
+      "respuesta": "No. Extranjeros pueden comprar propiedad en CR con los mismos derechos que costarricenses. Solo se requiere DIMEX o pasaporte para tramites notariales."
+    },
+    {
+      "pregunta": "Que impuestos pago al comprar?",
+      "respuesta": "Impuesto de traspaso 1.5%, timbres notariales ~0.5%, honorarios abogado 1-1.5%, registro 0.5%. Total aprox 3.5-4% del valor de la propiedad. Le calculamos el costo total antes de comprar."
+    },
+    {
+      "pregunta": "Cuanto tiempo tarda un proceso de compra?",
+      "respuesta": "Si todo esta en orden: 30-45 dias desde oferta aceptada hasta escrituracion. Si hay financiamiento bancario, sumar 30 dias mas para approval. Compra cash es lo mas rapido."
+    },
+    {
+      "pregunta": "Manejan propiedades en construccion (pre-venta)?",
+      "respuesta": "Si. Hemos trabajado con varias desarrolladoras en CR. Pre-venta tiene ventajas (precio menor, eleccion de unidad) y riesgos (atraso de obra, cambios). Le explicamos los pros y contras de cada proyecto."
+    },
+    {
+      "pregunta": "Pueden manejar el Airbnb por mi si compro?",
+      "respuesta": "Trabajamos con partners de property management que pueden manejar la operacion Airbnb (limpieza, check-in, atencion huespedes). Comision tipica: 20-25% de los ingresos. Le presentamos opciones."
+    },
+    {
+      "pregunta": "Cuanto cobra Inversiones Soler de honorarios?",
+      "respuesta": "Para compra: 3% del valor de la propiedad. Para venta: 5% (incluye toda la promocion, fotos, agente, gestion). Para asesoria de inversion sin transaccion: consulta inicial gratuita, plan personalizado 200,000 CRC."
+    }
   ],
   "meta_ads": {
     "page_id": "796480326889963",
@@ -132,9 +277,10 @@
     "whatsapp_phone_id": "777414378791556"
   },
   "metadata": {
-    "version": "1.0",
+    "version": "2.0",
     "creado": "2026-05-07",
     "negocio_id_business": "1106361001133983",
-    "categoria_meta": "Sector inmobiliario"
+    "categoria_meta": "Sector inmobiliario",
+    "enhanced_at": "2026-05-18"
   }
 }

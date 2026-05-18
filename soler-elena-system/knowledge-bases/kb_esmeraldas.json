@@ -180,6 +180,20 @@
     {
       "objecion": "No tengo efectivo",
       "respuesta": "Puede pagar con tarjeta al recibir, sin problema."
+    },
+    {
+      "objecion": "Esta muy caro / pense que era mas barato",
+      "respuesta": "Entiendo. Vea, las esmeraldas naturales son piedras preciosas - el precio refleja la calidad de la piedra, el oro/plata, la mano de obra. Comparando con bisuteria: una bisuteria de 10,000 colones se daña en 6 meses, una esmeralda real es de por vida.",
+      "cierre": "Le interesa ver opciones a partir de 30,000 CRC? Tenemos para todos los presupuestos."
+    },
+    {
+      "objecion": "Como se que es esmeralda real?",
+      "respuesta": "Excelente pregunta. Cada pieza viene con certificado gemmologico que valida origen, color y calidad de la piedra. Ademas tenemos garantia de autenticidad - si en cualquier momento un experto independiente certifica que no es real, le devolvemos su dinero."
+    },
+    {
+      "objecion": "Lo voy a pensar",
+      "respuesta": "Por supuesto. Es una decision importante. Le envio por WhatsApp las fotos + precios + certificacion para que la tenga a mano. Las esmeraldas no se devaluan, asi que cuando decida estamos aqui.",
+      "cierre": "Hay alguna pieza en particular que le gusto mas?"
     }
   ],
   "identidad": {
@@ -223,6 +237,38 @@
     {
       "pregunta": "¿Tienen inventario de cada pieza?",
       "respuesta": "No, cada pieza es única. No manejamos inventario repetido."
+    },
+    {
+      "pregunta": "Las esmeraldas son naturales o sinteticas?",
+      "respuesta": "100% naturales certificadas. Todas nuestras esmeraldas vienen con certificado de autenticidad. No vendemos bisuteria ni esmeraldas sinteticas."
+    },
+    {
+      "pregunta": "Ofrecen garantia?",
+      "respuesta": "Si, garantia de por vida en autenticidad de la piedra. Si la pieza se daña (ej. broche aretes), tenemos taller propio para reparaciones."
+    },
+    {
+      "pregunta": "Hacen envios?",
+      "respuesta": "Si. Envios a todo Costa Rica via Correos de Costa Rica o couriers. Envios internacionales a USA, Mexico y resto LatAm coordinado por DHL."
+    },
+    {
+      "pregunta": "Puedo ver las piezas en persona antes de comprar?",
+      "respuesta": "Por supuesto. Tenemos showroom en CR donde puede ver y probar todas las piezas. Agendamos cita personalizada."
+    },
+    {
+      "pregunta": "Aceptan tarjetas?",
+      "respuesta": "Si. Aceptamos Visa, Mastercard, American Express, transferencia, SINPE Movil y efectivo. Para tarjetas, sin recargo en pago de contado."
+    },
+    {
+      "pregunta": "Hacen piezas personalizadas?",
+      "respuesta": "Si. Trabajamos con disenadores que pueden crear piezas a medida segun su idea. Tiempo de produccion: 2-4 semanas."
+    },
+    {
+      "pregunta": "Cuanto duran las esmeraldas?",
+      "respuesta": "Toda la vida. La esmeralda es una piedra preciosa duradera (dureza 7.5-8 en escala Mohs). Recomendamos limpieza profesional cada 1-2 anos para mantenerlas brillantes."
+    },
+    {
+      "pregunta": "Tienen tienda online?",
+      "respuesta": "Estamos en proceso de lanzar tienda online. Por ahora la mejor forma es DM o WhatsApp para mostrarle nuestras piezas con fotos y videos."
     }
   ],
   "meta_ads": {
@@ -235,9 +281,13 @@
     "currency": "CRC"
   },
   "metadata": {
-    "version": "1.0",
+    "version": "2.0",
     "ultima_actualizacion": "2026-04-22",
     "migrado_desde": "bot.py SYSTEM_PROMPT inline",
-    "editable_por": ["Agent 7 KB Updater Inteligente", "Humano via JSON"]
+    "editable_por": [
+      "Agent 7 KB Updater Inteligente",
+      "Humano via JSON"
+    ],
+    "enhanced_at": "2026-05-18"
   }
 }

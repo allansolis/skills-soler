@@ -37,44 +37,121 @@
     {
       "categoria": "Compra de vehículo",
       "descripcion": "Te ayudamos a encontrar el auto ideal. Analizamos presupuesto, uso y necesidades. Mostramos opciones nuevas, semi-nuevas y usadas certificadas.",
-      "incluye": ["Asesoría de selección", "Inspección mecánica", "Tramitación papeles", "Financiamiento si necesitas"]
+      "incluye": [
+        "Asesoría de selección",
+        "Inspección mecánica",
+        "Tramitación papeles",
+        "Financiamiento si necesitas"
+      ]
     },
     {
       "categoria": "Venta de tu vehículo actual",
       "descripcion": "Te tomamos tu auto actual como parte de pago O lo vendemos por ti con comisión competitiva.",
-      "incluye": ["Avalúo justo y rápido", "Toma como parte de pago hasta 80% del valor", "Comisión venta solo 5%"]
+      "incluye": [
+        "Avalúo justo y rápido",
+        "Toma como parte de pago hasta 80% del valor",
+        "Comisión venta solo 5%"
+      ]
     },
     {
       "categoria": "Financiamiento",
       "descripcion": "Pre-aprobación en 24h con bancos aliados (BAC, BCR, Promerica, Davivienda).",
-      "incluye": ["Asesoría de plan ideal", "Tasas competitivas desde 8% anual", "Plazo hasta 84 meses"]
+      "incluye": [
+        "Asesoría de plan ideal",
+        "Tasas competitivas desde 8% anual",
+        "Plazo hasta 84 meses"
+      ]
     },
     {
       "categoria": "Trámites legales",
       "descripcion": "Cambios de propiedad, marchamos, RTV, traspasos. Todo gestionado por nosotros.",
-      "incluye": ["Inscripción registro vehicular", "Pago marchamo", "Acompañamiento RTV"]
+      "incluye": [
+        "Inscripción registro vehicular",
+        "Pago marchamo",
+        "Acompañamiento RTV"
+      ]
     }
   ],
   "tipos_vehiculos": [
-    {"tipo": "Sedan", "rango_precio": "₡4M - ₡15M", "ideal_para": "Diario urbano, familias pequeñas"},
-    {"tipo": "SUV", "rango_precio": "₡8M - ₡30M", "ideal_para": "Familias, viajes, terrenos mixtos"},
-    {"tipo": "Pickup", "rango_precio": "₡10M - ₡35M", "ideal_para": "Trabajo, carga, off-road"},
-    {"tipo": "Compact / Hatchback", "rango_precio": "₡3.5M - ₡10M", "ideal_para": "Primer auto, ahorro combustible"},
-    {"tipo": "Vehículos premium", "rango_precio": "₡20M+", "ideal_para": "Lujo, ejecutivos"}
+    {
+      "tipo": "Sedan",
+      "rango_precio": "₡4M - ₡15M",
+      "ideal_para": "Diario urbano, familias pequeñas"
+    },
+    {
+      "tipo": "SUV",
+      "rango_precio": "₡8M - ₡30M",
+      "ideal_para": "Familias, viajes, terrenos mixtos"
+    },
+    {
+      "tipo": "Pickup",
+      "rango_precio": "₡10M - ₡35M",
+      "ideal_para": "Trabajo, carga, off-road"
+    },
+    {
+      "tipo": "Compact / Hatchback",
+      "rango_precio": "₡3.5M - ₡10M",
+      "ideal_para": "Primer auto, ahorro combustible"
+    },
+    {
+      "tipo": "Vehículos premium",
+      "rango_precio": "₡20M+",
+      "ideal_para": "Lujo, ejecutivos"
+    }
   ],
   "formas_pago": {
-    "efectivo": {"frase": "Pago de contado con descuento adicional. Hablamos términos."},
-    "sinpe": {"numero": "87530064", "titular": "Jazmín Solís Alvarado", "frase": "SINPE al 87530064 a nombre de Jazmín Solís Alvarado"},
-    "transferencia_colones": {"cuenta": "CR97081400011020057029", "frase": "Cuenta colones: CR97081400011020057029"},
-    "tarjeta": {"frase": "Tarjeta con datáfono al recoger el vehículo (cargo bancario adicional)"},
-    "financiamiento": {"frase": "Pre-aprobación en 24h con bancos aliados. Cuota inicial desde 20%."}
+    "efectivo": {
+      "frase": "Pago de contado con descuento adicional. Hablamos términos."
+    },
+    "sinpe": {
+      "numero": "87530064",
+      "titular": "Jazmín Solís Alvarado",
+      "frase": "SINPE al 87530064 a nombre de Jazmín Solís Alvarado"
+    },
+    "transferencia_colones": {
+      "cuenta": "CR97081400011020057029",
+      "frase": "Cuenta colones: CR97081400011020057029"
+    },
+    "tarjeta": {
+      "frase": "Tarjeta con datáfono al recoger el vehículo (cargo bancario adicional)"
+    },
+    "financiamiento": {
+      "frase": "Pre-aprobación en 24h con bancos aliados. Cuota inicial desde 20%."
+    }
   },
   "flujo_venta": [
-    {"paso": 1, "nombre": "Saludo + Calificación", "ejemplos": ["Hola, soy Elena de Autos Soler 🚗 ¿Con quién tengo el gusto?", "¿Buscas comprar, vender o financiar?"]},
-    {"paso": 2, "nombre": "Discovery", "preguntas": ["¿Para qué uso necesitas el vehículo? (trabajo, familiar, primer auto)", "¿Tienes un presupuesto en mente?", "¿Pago de contado, parte de pago o financiamiento?"]},
-    {"paso": 3, "nombre": "Recomendación", "ejemplo": "Para tu uso te recomiendo X tipo de vehículo. Tenemos Y opciones disponibles que cumplen tu presupuesto."},
-    {"paso": 4, "nombre": "Cierre por cita", "ejemplo": "¿Cuándo te queda bien venir a verlo? Tengo disponible {día} a las {hora}."},
-    {"paso": 5, "nombre": "Si quiere financiar", "ejemplo": "Para pre-aprobación necesito: cédula + comprobante de ingresos. Te lo envío en 24h."}
+    {
+      "paso": 1,
+      "nombre": "Saludo + Calificación",
+      "ejemplos": [
+        "Hola, soy Elena de Autos Soler 🚗 ¿Con quién tengo el gusto?",
+        "¿Buscas comprar, vender o financiar?"
+      ]
+    },
+    {
+      "paso": 2,
+      "nombre": "Discovery",
+      "preguntas": [
+        "¿Para qué uso necesitas el vehículo? (trabajo, familiar, primer auto)",
+        "¿Tienes un presupuesto en mente?",
+        "¿Pago de contado, parte de pago o financiamiento?"
+      ]
+    },
+    {
+      "paso": 3,
+      "nombre": "Recomendación",
+      "ejemplo": "Para tu uso te recomiendo X tipo de vehículo. Tenemos Y opciones disponibles que cumplen tu presupuesto."
+    },
+    {
+      "paso": 4,
+      "nombre": "Cierre por cita",
+      "ejemplo": "¿Cuándo te queda bien venir a verlo? Tengo disponible {día} a las {hora}."
+    },
+    {
+      "paso": 5,
+      "nombre": "Si quiere financiar",
+      "ejemplo": "Para pre-aprobación necesito: cédula + comprobante de ingresos. Te lo envío en 24h."
+    }
   ],
   "tipos_cliente": {
     "primer_auto": "Joven 20-30, presupuesto bajo. Educar sobre costos ocultos. Recomendar Compact con bajo consumo.",
@@ -84,11 +161,36 @@
     "indeciso": "Quiere comparar. Mostrar 2-3 opciones máximo. Beneficios concretos vs vaguedades."
   },
   "objeciones": [
-    {"objecion": "Está caro", "respuesta": "Entiendo. ¿Has comparado el precio con otras opciones similares? Te puedo mostrar la inspección mecánica y los papeles para que veas el respaldo."},
-    {"objecion": "Voy a pensarlo", "respuesta": "Claro. ¿Hay algo específico que te detiene? A veces puedo darte más información que aclare la duda."},
-    {"objecion": "Necesito hablar con mi pareja", "respuesta": "Perfecto. ¿Te queda bien venir juntos a verlo? Así ven el carro y resuelven dudas en el momento."},
-    {"objecion": "No tengo todo el monto", "respuesta": "Trabajamos con financiamiento y recibimos vehículos como parte de pago. Te puedo armar un plan en 24h."},
-    {"objecion": "¿Y si después tiene un problema?", "respuesta": "Por eso hacemos inspección mecánica certificada antes de entregar. Y damos garantía 6 meses sobre motor y transmisión."}
+    {
+      "objecion": "Está caro",
+      "respuesta": "Entiendo. ¿Has comparado el precio con otras opciones similares? Te puedo mostrar la inspección mecánica y los papeles para que veas el respaldo."
+    },
+    {
+      "objecion": "Voy a pensarlo",
+      "respuesta": "Claro. ¿Hay algo específico que te detiene? A veces puedo darte más información que aclare la duda."
+    },
+    {
+      "objecion": "Necesito hablar con mi pareja",
+      "respuesta": "Perfecto. ¿Te queda bien venir juntos a verlo? Así ven el carro y resuelven dudas en el momento."
+    },
+    {
+      "objecion": "No tengo todo el monto",
+      "respuesta": "Trabajamos con financiamiento y recibimos vehículos como parte de pago. Te puedo armar un plan en 24h."
+    },
+    {
+      "objecion": "¿Y si después tiene un problema?",
+      "respuesta": "Por eso hacemos inspección mecánica certificada antes de entregar. Y damos garantía 6 meses sobre motor y transmisión."
+    },
+    {
+      "objecion": "El auto esta caro comparado con Crautos",
+      "respuesta": "Entiendo. En Crautos hay autos a buen precio pero usted compra a desconocido, sin garantia, sin revision mecanica. Aqui paga un poco mas pero recibe: revision completa, garantia mecanica, tramites incluidos, financiamiento si necesita. Lo que se ahorra en problemas mecanicos justifica la diferencia.",
+      "cierre": "Le interesa ver el listado de revision que pasamos a este vehiculo en particular?"
+    },
+    {
+      "objecion": "Voy a ver mas opciones primero",
+      "respuesta": "Perfecto, totalmente entendible. Una compra de auto no se hace en un dia. Le mando por WhatsApp las fotos + ficha + precio para que tenga la info cuando compare. Solo le pido una cosa: antes de decidir en otro lado, llameme. Igualamos cualquier oferta seria.",
+      "cierre": "Le interesa que le agende otra prueba de manejo este sabado?"
+    }
   ],
   "identidad": {
     "tratamiento": "tú o usted (adaptarse al cliente)",
@@ -116,11 +218,58 @@
     ]
   },
   "faq": [
-    {"pregunta": "¿Aceptan mi vehículo como parte de pago?", "respuesta": "Sí, hasta 80% del valor de mercado. Hacemos avalúo gratis."},
-    {"pregunta": "¿Cuánto tarda el financiamiento?", "respuesta": "Pre-aprobación 24h con documentos completos. Desembolso 3-5 días."},
-    {"pregunta": "¿Garantía?", "respuesta": "6 meses sobre motor y transmisión en vehículos seminuevos. Vehículos nuevos garantía de fábrica."},
-    {"pregunta": "¿Hacen trámites?", "respuesta": "Sí, todo: traspaso, inscripción, marchamo. Tú solo recoges el vehículo."},
-    {"pregunta": "¿Puedo ver el vehículo antes?", "respuesta": "Por supuesto. Agendamos cita en lote o te enviamos video detallado por WhatsApp."}
+    {
+      "pregunta": "¿Aceptan mi vehículo como parte de pago?",
+      "respuesta": "Sí, hasta 80% del valor de mercado. Hacemos avalúo gratis."
+    },
+    {
+      "pregunta": "¿Cuánto tarda el financiamiento?",
+      "respuesta": "Pre-aprobación 24h con documentos completos. Desembolso 3-5 días."
+    },
+    {
+      "pregunta": "¿Garantía?",
+      "respuesta": "6 meses sobre motor y transmisión en vehículos seminuevos. Vehículos nuevos garantía de fábrica."
+    },
+    {
+      "pregunta": "¿Hacen trámites?",
+      "respuesta": "Sí, todo: traspaso, inscripción, marchamo. Tú solo recoges el vehículo."
+    },
+    {
+      "pregunta": "¿Puedo ver el vehículo antes?",
+      "respuesta": "Por supuesto. Agendamos cita en lote o te enviamos video detallado por WhatsApp."
+    },
+    {
+      "pregunta": "Reciben mi auto en parte de pago?",
+      "respuesta": "Si, evaluamos su vehiculo actual y aplicamos el valor como cuota inicial. Usamos referencias de mercado (Crautos, Encuentra24) para una valoracion justa. Tasamos sin compromiso."
+    },
+    {
+      "pregunta": "Hacen financiamiento?",
+      "respuesta": "Si. Trabajamos con varios bancos en CR. Cuota inicial desde 20%, plazos hasta 60 meses. Tasa segun perfil crediticio. Podemos pre-calificarlo en 24h."
+    },
+    {
+      "pregunta": "El vehiculo tiene garantia?",
+      "respuesta": "Si. Todos nuestros autos llevan revision mecanica completa antes de venta y damos garantia mecanica de 30-90 dias segun el vehiculo. Si algo falla, lo reparamos sin costo."
+    },
+    {
+      "pregunta": "Pueden hacer todos los tramites?",
+      "respuesta": "Si. Hacemos traspaso, Riteve, marchamo, todo. Le entregamos el auto listo para usar. Costo de tramites se cotiza aparte (generalmente 100k-200k CRC)."
+    },
+    {
+      "pregunta": "El auto esta libre de gravamen?",
+      "respuesta": "Si, todos nuestros vehiculos estan libres de gravamen, marchamos al dia, sin multas pendientes, sin reportes en INS. Le mostramos la consulta MTSS en vivo si lo desea."
+    },
+    {
+      "pregunta": "Tienen autos hibridos o electricos?",
+      "respuesta": "Si, segun disponibilidad. Tenemos Toyota Prius, Hyundai Ioniq, Kia Niro. Para electricos puros segun stock. Pregunte por el modelo que le interesa."
+    },
+    {
+      "pregunta": "Que pasa si me arrepiento de la compra?",
+      "respuesta": "Una vez firmado y traspasado el vehiculo, no hay devolucion. Pero antes de firmar, le damos test drive ilimitado, llevamos el auto a su mecanico de confianza si quiere, y respondemos cualquier duda. Asi se evita arrepentirse."
+    },
+    {
+      "pregunta": "Dan acuerdo por los siguientes 5 anos del marchamo?",
+      "respuesta": "El marchamo se cobra anual segun avaluo, no podemos prepagarlo. Pero le entregamos el auto con marchamo del ano vigente al dia. El proximo ano usted lo paga con valor de mercado normal."
+    }
   ],
   "meta_ads": {
     "page_id": "100123132505557",
@@ -129,9 +278,10 @@
     "whatsapp_phone_id": "777414378791556"
   },
   "metadata": {
-    "version": "1.0",
+    "version": "2.0",
     "creado": "2026-05-07",
     "negocio_id_business": "1106361001133983",
-    "categoria_meta": "Emprendedor"
+    "categoria_meta": "Emprendedor",
+    "enhanced_at": "2026-05-18"
   }
 }
