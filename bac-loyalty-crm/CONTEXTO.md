@@ -7,7 +7,7 @@ Documento vivo. Se actualiza con cada decisión, supuesto o hallazgo relevante.
 | Término | Significado |
 |---|---|
 | **BAC Loyalty** | Programa de lealtad del Banco BAC (cliente final del CRM) |
-| **Zolutium** | Plataforma backend que expone APIs de conversaciones, contactos, KB. Base URL: `services.zolutium.com/api/v1` |
+| **API BAC** | Plataforma backend del CRM que expone APIs de conversaciones, contactos, KB. URL real definida por `ZOLUTIUM_BASE_URL` en `.env` (nombre de variable legado del workflow original). |
 | **Glass Soler** | Marca/producto del usuario Allan Solis — vertical de los workflows con sufijo "Glass Soler" |
 | **Esmeralda** | Segunda marca/vertical paralela a Glass Soler |
 | **KB** | Knowledge Base — base de conocimiento usada por agentes de IA |
@@ -28,7 +28,7 @@ Fecha: 2026-05-19
 
 ### D3 — Idempotencia obligatoria
 Fecha: 2026-05-19
-**Decisión**: todo POST hacia Zolutium debe enviar header `Idempotency-Key: <batch_id>-<destino>`. El `batch_id` se calcula determinísticamente a partir de la ventana temporal del run.
+**Decisión**: todo POST hacia API BAC debe enviar header `Idempotency-Key: <batch_id>-<destino>`. El `batch_id` se calcula determinísticamente a partir de la ventana temporal del run.
 **Por qué**: si el cron corre dos veces (manual + programado) o n8n reintenta automáticamente, se evitan duplicados en KB.
 
 ### D4 — Modelo Claude por defecto
@@ -43,7 +43,7 @@ Fecha: 2026-05-19
 
 ## Supuestos por validar
 
-- [ ] La API de Zolutium soporta `Idempotency-Key` (estándar Stripe). Confirmar con sus docs.
+- [ ] La API BAC soporta `Idempotency-Key` (estándar Stripe). Confirmar con sus docs.
 - [ ] El endpoint `/conversations/recent` acepta paginación con `?cursor=<string>` y devuelve `next_cursor` en la respuesta. Confirmar con captura de curl real.
 - [ ] El workspace Anthropic de BAC tiene `claude-opus-4-7` habilitado. Si no, bajar a Sonnet en todos los workflows.
 - [ ] Los workflows duplicados Glass Soler vs Esmeralda son **dos verticales independientes**, no errores de copy-paste. Verificar con el usuario.

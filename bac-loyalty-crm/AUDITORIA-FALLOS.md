@@ -6,15 +6,15 @@
 
 | # | Hipótesis | Probabilidad | Diagnóstico rápido |
 |---|---|---|---|
-| H1 | Credenciales rotas/expiradas (Zolutium o Anthropic) | **Alta** | Buscar errores HTTP 401/403 en ejecuciones |
-| H2 | Endpoint Zolutium cambió de URL/contrato | Alta | Buscar 404 o body decoding errors |
+| H1 | Credenciales rotas/expiradas (API BAC o Anthropic) | **Alta** | Buscar errores HTTP 401/403 en ejecuciones |
+| H2 | Endpoint API BAC cambió de URL/contrato | Alta | Buscar 404 o body decoding errors |
 | H3 | Rate limit en Anthropic API (Opus 4.7 cuota) | Media | Buscar 429 o "rate limit" |
 | H4 | Modelo Claude no disponible en workspace | Media | Buscar `model_not_found` o `invalid_request_error` |
 | H5 | Workflow lanzado simultáneo con sí mismo (sin idempotencia) | Media | Comparar timestamps de runs duplicados |
 | H6 | Variables de entorno faltantes tras migración | Alta | Buscar `undefined` o `is not defined` en logs |
 | H7 | Cambio en schema de datos (campo renombrado) | Media | Buscar `Cannot read property X of undefined` |
 | H8 | Timeout en GET masivos sin paginación | Baja | Buscar `ETIMEDOUT` o `socket hang up` |
-| H9 | Webhooks de Zolutium devolviendo HTML en lugar de JSON | Baja | Buscar `Unexpected token < in JSON` |
+| H9 | Webhooks de API BAC devolviendo HTML en lugar de JSON | Baja | Buscar `Unexpected token < in JSON` |
 | H10 | Cron disparándose cuando el destino está caído (mantenimiento) | Baja | Correlacionar fallas con ventanas horarias |
 
 ## Procedimiento (ejecutar en orden)

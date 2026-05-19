@@ -44,7 +44,7 @@ Cada 6 horas
 | 1 | Sin paginación, truncado a 500 conv./6h | Loop `IF ¿Más páginas?` con cursor, sin límite arbitrario |
 | 2 | Sin deduplicación si cron corre 2 veces | `batch_id` determinístico (ventana de 6h) + header `Idempotency-Key` en cada POST |
 | 3 | Sin validación de JSON de Claude | Extracción robusta (fenced / first-brace), system prompt fuerza JSON, fallback no aborta el workflow |
-| 4 | 3 POST paralelos a Zolutium | Serializados en cadena con retry 3x |
+| 4 | 3 POST paralelos a API BAC | Serializados en cadena con retry 3x |
 | 5 | PII en logs y prompts | `sha256(id+SALT)` antes de enviar a Claude; texto truncado a 4000 chars; sin email/teléfono/documento |
 
 #### Credenciales requeridas en n8n
@@ -76,7 +76,7 @@ Ver [`../.env.example`](../.env.example). Mínimas:
 - [ ] El endpoint `/contacts/active` devuelve `{ data: [...] }`.
 - [ ] `claude-opus-4-7` habilitado en el workspace Anthropic (fallback: `claude-sonnet-4-6`).
 - [ ] `PII_SALT` definido y estable (no rotar entre ejecuciones).
-- [ ] `Idempotency-Key` honrado por la API de Zolutium en `/kb/aggregate`, `/kb/local/update`, `/kb/documents`.
+- [ ] `Idempotency-Key` honrado por la API BAC en `/kb/aggregate`, `/kb/local/update`, `/kb/documents`.
 
 ## Workflows pendientes de versionar
 

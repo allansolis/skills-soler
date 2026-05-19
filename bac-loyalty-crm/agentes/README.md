@@ -21,7 +21,7 @@ Este directorio contiene la **fuente de verdad** de los sub-agentes Claude usado
 - Idioma de trabajo y respuesta: **español**.
 - Sin emojis en archivos, prompts ni respuestas al cliente.
 - Sanitización de PII antes de cualquier llamada a IA (decisión D2 de `CONTEXTO.md`).
-- Idempotencia obligatoria en POST/PUT a Zolutium con header `Idempotency-Key` (decisión D3).
+- Idempotencia obligatoria en POST/PUT a API BAC con header `Idempotency-Key` (decisión D3).
 - Modelo por defecto: `claude-opus-4-7`; fallback `claude-sonnet-4-6` (decisión D4).
 - Confianza mínima de IA: `KB_CONFIDENCE_THRESHOLD=0.6` (decisión D5).
 

@@ -1,6 +1,6 @@
 # Modelo de datos canónico — BAC Loyalty CRM
 
-Entidades y relaciones que el CRM espera consumir/producir contra Zolutium.
+Entidades y relaciones que el CRM espera consumir/producir contra API BAC.
 
 ## Entidades principales
 
@@ -88,7 +88,7 @@ Conversation *───* KBDocument (via análisis Agente 7)
 - `batch_id` de workflows: `<tipo>-<ISO timestamp truncado a la ventana>` (ej. `kb-2026-05-19T00-00-00Z`).
 - `Idempotency-Key` para POSTs: `<batch_id>-<destino_logico>`.
 
-## Endpoints esperados en Zolutium
+## Endpoints esperados en API BAC
 
 | Método | Path | Uso |
 |---|---|---|

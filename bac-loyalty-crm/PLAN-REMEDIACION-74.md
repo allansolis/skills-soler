@@ -10,7 +10,7 @@
 
 ## 1. Resumen ejecutivo
 
-El workspace muestra **170 fallos en 228 ejecuciones (74.6%)** distribuidos entre 15 workflows productivos. La hipótesis dominante (ver `AUDITORIA-FALLOS.md`) apunta a credenciales rotas, endpoints Zolutium modificados y/o variables de entorno ausentes tras la última migración. Sin acceso vivo al MCP n8n desde el sandbox web, el diagnóstico fino requiere que el operador exporte la API key de n8n y ejecute `scripts/auditar-fallos.sh` localmente.
+El workspace muestra **170 fallos en 228 ejecuciones (74.6%)** distribuidos entre 15 workflows productivos. La hipótesis dominante (ver `AUDITORIA-FALLOS.md`) apunta a credenciales rotas, endpoints API BAC modificados y/o variables de entorno ausentes tras la última migración. Sin acceso vivo al MCP n8n desde el sandbox web, el diagnóstico fino requiere que el operador exporte la API key de n8n y ejecute `scripts/auditar-fallos.sh` localmente.
 
 **Meta**: bajar la tasa de fallo a **≤ 5% en 7 días naturales**, sostenida durante 72 h continuas como criterio de cierre.
 
@@ -47,7 +47,7 @@ El workspace muestra **170 fallos en 228 ejecuciones (74.6%)** distribuidos entr
 | Campo | Detalle |
 |---|---|
 | **Objetivo** | Aplicar correcciones técnicas al top-3 de causas identificado en Fase 1, en orden de impacto descendente. |
-| **Entradas requeridas** | Ranking de Fase 1; permisos para rotar credenciales en Zolutium y Anthropic; ventana de despliegue acordada con el usuario. |
+| **Entradas requeridas** | Ranking de Fase 1; permisos para rotar credenciales en API BAC y Anthropic; ventana de despliegue acordada con el usuario. |
 | **Acciones concretas** | 1. Por cada uno de los top-3 fixes, abrir el workflow en n8n, **duplicarlo** con sufijo `-fix-20260519`, aplicar el cambio en la copia. <br> 2. Ejecutar `Test workflow` en el workflow-fix con dataset mínimo (1 registro). <br> 3. Si OK: activar workflow-fix como `Active`, desactivar el original, dejar el original como respaldo durante 72 h antes de borrarlo. <br> 4. Exportar el JSON del workflow-fix y commitearlo en `bac-loyalty-crm/n8n-workflows/<nombre>-v<n>.json` con mensaje `fix(n8n): <causa> en <workflow>`. <br> 5. Repetir hasta haber atacado las causas que cubren ≥ 90% del volumen de fallos. |
 | **Entregables** | - 3-6 workflows-fix activos en n8n. <br> - JSONs exportados versionados en `n8n-workflows/`. <br> - Tabla de control con `workflow → causa → fix → fecha → ejecuciones post-fix exitosas`. |
 | **Criterio de salida** | En las 6 h posteriores al último fix, la tasa de fallo agregada baja a ≤ 20%. |
@@ -58,8 +58,8 @@ El workspace muestra **170 fallos en 228 ejecuciones (74.6%)** distribuidos entr
 |---|---|
 | **Objetivo** | Recuperar el trabajo perdido por las 170 ejecuciones fallidas y verificar que los fixes no rompieron casos previamente OK. |
 | **Entradas requeridas** | Lista de `execution_id` fallidos con timestamp; capacidad de re-ejecución manual o por ventana temporal. |
-| **Acciones concretas** | 1. Filtrar el CSV de Fase 1 por workflows ya corregidos en Fase 2. <br> 2. Para workflows con idempotencia (D3 en `CONTEXTO.md`): re-ejecutar manualmente cada fallido vía `Executions → Retry`. <br> 3. Para workflows sin idempotencia aún: ejecutar manualmente con ventana temporal acotada (`?since=<ts>&until=<ts>`) y revisar duplicados en Zolutium. <br> 4. Cruzar volumetría esperada vs. real con dashboard de Zolutium. <br> 5. Marcar como `recuperada` cada ejecución re-corrida exitosa en `auditoria-fallos-2026-05-19.csv` columna añadida `recovered_at`. |
-| **Entregables** | - CSV de Fase 1 con columna `recovered_at` completa para ≥ 95% de las filas. <br> - Diff de volumetría pre/post backfill en Zolutium. <br> - Documentación de casos no recuperables (idealmente < 5%). |
+| **Acciones concretas** | 1. Filtrar el CSV de Fase 1 por workflows ya corregidos en Fase 2. <br> 2. Para workflows con idempotencia (D3 en `CONTEXTO.md`): re-ejecutar manualmente cada fallido vía `Executions → Retry`. <br> 3. Para workflows sin idempotencia aún: ejecutar manualmente con ventana temporal acotada (`?since=<ts>&until=<ts>`) y revisar duplicados en API BAC. <br> 4. Cruzar volumetría esperada vs. real con dashboard de API BAC. <br> 5. Marcar como `recuperada` cada ejecución re-corrida exitosa en `auditoria-fallos-2026-05-19.csv` columna añadida `recovered_at`. |
+| **Entregables** | - CSV de Fase 1 con columna `recovered_at` completa para ≥ 95% de las filas. <br> - Diff de volumetría pre/post backfill en API BAC. <br> - Documentación de casos no recuperables (idealmente < 5%). |
 | **Criterio de salida** | ≥ 95% de las 170 ejecuciones fallidas tienen estado `recovered` o `irrecoverable-documentado`. |
 
 ### Fase 4 — Monitoreo permanente (días 6-7, 4 h)
@@ -67,9 +67,9 @@ El workspace muestra **170 fallos en 228 ejecuciones (74.6%)** distribuidos entr
 | Campo | Detalle |
 |---|---|
 | **Objetivo** | Garantizar que la tasa de fallo se mantiene ≤ 5% sin intervención manual continua. |
-| **Entradas requeridas** | Workflow `notify-slack-on-error` activo (Fase 0); acceso a Zolutium para dashboard de KPIs. |
-| **Acciones concretas** | 1. Configurar cron horario que llame `GET /executions?status=error&limit=50` y emita conteo a Zolutium endpoint `/audit/n8n-errors/summary`. <br> 2. Crear dashboard en Zolutium con los 4 KPIs de sección 5 (tasa diaria, MTTR, top workflows, top errores). <br> 3. Definir umbrales de alerta: <br> &nbsp;&nbsp;- WARN si tasa diaria > 10%. <br> &nbsp;&nbsp;- CRIT si tasa diaria > 25% o cualquier P1 sin resolver > 30 min. <br> 4. Documentar en `CONTEXTO.md` la decisión D6 — Monitoreo permanente. <br> 5. Sesión de cierre con Allan: revisión de los 7 días, validación de cierre, plan de prevención (sección 6). |
-| **Entregables** | - Dashboard Zolutium operativo con los 4 KPIs. <br> - Cron de monitoreo en n8n activo. <br> - Decisión D6 documentada en `CONTEXTO.md`. <br> - Acta de cierre con métricas finales. |
+| **Entradas requeridas** | Workflow `notify-slack-on-error` activo (Fase 0); acceso a API BAC para dashboard de KPIs. |
+| **Acciones concretas** | 1. Configurar cron horario que llame `GET /executions?status=error&limit=50` y emita conteo a API BAC endpoint `/audit/n8n-errors/summary`. <br> 2. Crear dashboard en API BAC con los 4 KPIs de sección 5 (tasa diaria, MTTR, top workflows, top errores). <br> 3. Definir umbrales de alerta: <br> &nbsp;&nbsp;- WARN si tasa diaria > 10%. <br> &nbsp;&nbsp;- CRIT si tasa diaria > 25% o cualquier P1 sin resolver > 30 min. <br> 4. Documentar en `CONTEXTO.md` la decisión D6 — Monitoreo permanente. <br> 5. Sesión de cierre con Allan: revisión de los 7 días, validación de cierre, plan de prevención (sección 6). |
+| **Entregables** | - Dashboard API BAC operativo con los 4 KPIs. <br> - Cron de monitoreo en n8n activo. <br> - Decisión D6 documentada en `CONTEXTO.md`. <br> - Acta de cierre con métricas finales. |
 | **Criterio de salida** | Tasa de fallo agregada ≤ 5% sostenida 72 h continuas, con alertas funcionando y dashboard publicado. |
 
 ---
@@ -80,16 +80,16 @@ Esta matriz extiende las 10 hipótesis de `AUDITORIA-FALLOS.md` con el fix técn
 
 | # | Hipótesis | Síntoma específico | Fix técnico concreto | Tiempo estimado |
 |---|---|---|---|---|
-| **H1** | Credencial Zolutium/Anthropic expirada | HTTP 401 / 403 en nodo HTTP Request o nodo Anthropic | 1. En `Settings → Credentials`, abrir credencial `zolutium-api` y `anthropic-api`. 2. Rotar el token (regenerar en Zolutium dashboard y en console.anthropic.com). 3. Pegar el nuevo valor en n8n. 4. Re-ejecutar una falla de muestra con `Retry from this node`. | 30 min |
-| **H2** | Endpoint Zolutium cambió de URL/contrato | HTTP 404 o `Unexpected end of JSON input` en nodos que llaman a `services.zolutium.com/api/v1/*` | 1. Cotejar URL del nodo contra la doc actual de Zolutium. 2. Si cambió, reemplazar URL hardcodeada por `={{$env.ZOLUTIUM_BASE_URL}}/<nuevo-path>`. 3. Si cambió el contrato del body, ajustar el `jsonBody` del HTTP Request. 4. Versionar el cambio en `n8n-workflows/`. | 60 min por workflow |
+| **H1** | Credencial API BAC/Anthropic expirada | HTTP 401 / 403 en nodo HTTP Request o nodo Anthropic | 1. En `Settings → Credentials`, abrir credencial `zolutium-api` y `anthropic-api`. 2. Rotar el token (regenerar en API BAC dashboard y en console.anthropic.com). 3. Pegar el nuevo valor en n8n. 4. Re-ejecutar una falla de muestra con `Retry from this node`. | 30 min |
+| **H2** | Endpoint API BAC cambió de URL/contrato | HTTP 404 o `Unexpected end of JSON input` en nodos HTTP que llaman al backend | 1. Cotejar URL del nodo contra la doc actual de API BAC. 2. Si cambió, reemplazar URL hardcodeada por `={{$env.ZOLUTIUM_BASE_URL}}/<nuevo-path>` (variable legada, mantenemos el nombre para no romper workflows en producción). 3. Si cambió el contrato del body, ajustar el `jsonBody` del HTTP Request. 4. Versionar el cambio en `n8n-workflows/`. | 60 min por workflow |
 | **H3** | Rate limit Anthropic (Opus 4.7) | HTTP 429 + header `retry-after` en nodo Anthropic | 1. En el nodo Anthropic, abrir `Options → Retry on fail` y configurar `Max tries=5`, `Wait between=10000ms` con backoff exponencial. 2. Agregar nodo `Split In Batches` con `batchSize=3` antes del nodo Anthropic. 3. Si persiste, mover llamadas de Opus a Sonnet 4.6 según D4. | 45 min |
 | **H4** | Modelo `claude-opus-4-7` no habilitado en workspace BAC | `invalid_request_error: model_not_found` | 1. Validar acceso a Opus en `console.anthropic.com → Workspace → Models`. 2. Si no está habilitado, solicitar habilitación o cambiar el parámetro `model` en cada nodo Anthropic a `claude-sonnet-4-6` (fallback documentado en D4). 3. Buscar/reemplazar `claude-opus-4-7` en JSONs versionados. | 30 min |
-| **H5** | Workflow disparado simultáneamente consigo mismo | Dos `execution_id` con `startedAt` < 5 s de diferencia y fallos en el segundo por bloqueo de recurso | 1. En `Workflow Settings → Caller policy`, establecer `Only workflows on same owner`. 2. En `Settings → Execution Order`, fijar `v1`. 3. Agregar header `Idempotency-Key: {{$execution.id}}` en todos los POST hacia Zolutium (D3). 4. Marcar `Save manual executions = false` para evitar ruido. | 40 min |
+| **H5** | Workflow disparado simultáneamente consigo mismo | Dos `execution_id` con `startedAt` < 5 s de diferencia y fallos en el segundo por bloqueo de recurso | 1. En `Workflow Settings → Caller policy`, establecer `Only workflows on same owner`. 2. En `Settings → Execution Order`, fijar `v1`. 3. Agregar header `Idempotency-Key: {{$execution.id}}` en todos los POST hacia API BAC (D3). 4. Marcar `Save manual executions = false` para evitar ruido. | 40 min |
 | **H6** | Variables de entorno faltantes post-migración | Errores `is not defined` o `Cannot read properties of undefined (reading 'X')` en nodos `Code` | 1. Inventariar variables referenciadas (`grep -r "\$env\." n8n-workflows/`). 2. Cotejar con `Settings → Variables` del workspace. 3. Crear las que faltan: `ZOLUTIUM_BASE_URL`, `ANTHROPIC_API_KEY`, `KB_CONFIDENCE_THRESHOLD`, `PII_SALT`, `SLACK_WEBHOOK_ERRORS`. 4. Re-test del workflow afectado. | 30 min |
 | **H7** | Schema de datos cambió (campo renombrado) | `TypeError: Cannot read properties of undefined (reading '<campo>')` en nodo `Code` o `Set` | 1. Capturar el JSON real entrante con un nodo `No Op` temporal. 2. Diferenciar contra el schema esperado en `modelo-datos/`. 3. Actualizar el path en el expression (`{{$json.contact.email}}` → `{{$json.contact_info.email}}`). 4. Considerar agregar nodo `Schema Validation` con AJV al inicio del flujo. | 60 min por workflow |
-| **H8** | Timeout en GET masivos sin paginación | `ETIMEDOUT` o `socket hang up` en nodos HTTP con `limit` alto o sin paginación | 1. En el nodo HTTP, `Options → Timeout=120000ms`. 2. Implementar loop con cursor: nodo `HTTP Request` + `If` + `Set cursor`. 3. Para Zolutium: usar `?cursor=<next_cursor>` (D5 supuesto). 4. Ya aplicado en Agente 7 v2 según hallazgo del 2026-05-19. | 90 min por workflow |
-| **H9** | Webhooks de Zolutium devuelven HTML en lugar de JSON | `SyntaxError: Unexpected token < in JSON at position 0` | 1. En el nodo HTTP, `Options → Response → Response Format = autodetect`. 2. Agregar nodo `If` que valide `{{$json.error}} === undefined` y rute a rama de error a Slack. 3. Si Zolutium devuelve HTML por 5xx puntual, agregar `Retry on fail` con 3 intentos. | 30 min |
-| **H10** | Cron disparándose cuando destino está caído | Fallas concentradas en una ventana horaria recurrente (ej. mantenimiento nocturno Zolutium) | 1. Generar histograma de `startedAt` por hora con `awk -F',' '{print substr($7,12,2)}' auditoria-fallos.csv \| sort \| uniq -c`. 2. Si hay pico en una franja, desplazar el cron 30-60 min fuera de esa ventana. 3. Coordinar con Zolutium horarios de mantenimiento. 4. Agregar `Wait` + `HTTP healthcheck` antes de la lógica principal. | 30 min |
+| **H8** | Timeout en GET masivos sin paginación | `ETIMEDOUT` o `socket hang up` en nodos HTTP con `limit` alto o sin paginación | 1. En el nodo HTTP, `Options → Timeout=120000ms`. 2. Implementar loop con cursor: nodo `HTTP Request` + `If` + `Set cursor`. 3. Para API BAC: usar `?cursor=<next_cursor>` (D5 supuesto). 4. Ya aplicado en Agente 7 v2 según hallazgo del 2026-05-19. | 90 min por workflow |
+| **H9** | Webhooks de API BAC devuelven HTML en lugar de JSON | `SyntaxError: Unexpected token < in JSON at position 0` | 1. En el nodo HTTP, `Options → Response → Response Format = autodetect`. 2. Agregar nodo `If` que valide `{{$json.error}} === undefined` y rute a rama de error a Slack. 3. Si API BAC devuelve HTML por 5xx puntual, agregar `Retry on fail` con 3 intentos. | 30 min |
+| **H10** | Cron disparándose cuando destino está caído | Fallas concentradas en una ventana horaria recurrente (ej. mantenimiento nocturno API BAC) | 1. Generar histograma de `startedAt` por hora con `awk -F',' '{print substr($7,12,2)}' auditoria-fallos.csv \| sort \| uniq -c`. 2. Si hay pico en una franja, desplazar el cron 30-60 min fuera de esa ventana. 3. Coordinar con API BAC horarios de mantenimiento. 4. Agregar `Wait` + `HTTP healthcheck` antes de la lógica principal. | 30 min |
 
 ---
 
@@ -106,7 +106,7 @@ curl -fsS -H "X-N8N-API-KEY: $N8N_API_KEY" \
   "$N8N_BASE_URL/api/v1/workflows/$WORKFLOW_ID" \
   | jq '.nodes[] | select(.credentials != null) | {nodo:.name, credenciales:.credentials}'
 
-# 2. Rotar el token en el proveedor (Zolutium / Anthropic), copiar el nuevo valor
+# 2. Rotar el token en el proveedor (API BAC / Anthropic), copiar el nuevo valor
 
 # 3. Actualizar la credencial en n8n cloud vía UI:
 #    Settings -> Credentials -> abrir credencial -> pegar nuevo token -> Save
@@ -210,18 +210,18 @@ Tasa de fallo n8n (%)
      D-1 D0 D1 D2 D3 D4 D5 D6 D7
 ```
 
-**Dashboard**: Zolutium → `Operations → n8n Health → Daily failure rate` (panel a crear en Fase 4).
+**Dashboard**: API BAC → `Operations → n8n Health → Daily failure rate` (panel a crear en Fase 4).
 
 ### 5.2 MTTR por incidente (objetivo ≤ 45 min para P1)
 
 | Severidad | Umbral MTTR | Fuente |
 |---|---|---|
-| P1 (credencial, modelo no disponible) | ≤ 30 min | Slack timestamp → resolución en Zolutium audit |
+| P1 (credencial, modelo no disponible) | ≤ 30 min | Slack timestamp → resolución en API BAC audit |
 | P2 (rate-limit, red) | ≤ 60 min | idem |
 | P3 (parsing, schema) | ≤ 4 h | idem |
 | P4 (otro) | ≤ 24 h | idem |
 
-**Dashboard**: Zolutium → `Operations → n8n Health → MTTR distribution`.
+**Dashboard**: API BAC → `Operations → n8n Health → MTTR distribution`.
 
 ### 5.3 Workflows con más fallos (top 5)
 
@@ -231,7 +231,7 @@ Query base sobre el CSV de auditoría:
 awk -F',' 'NR>1 {print $3}' auditoria-fallos-*.csv | sort | uniq -c | sort -rn | head -5
 ```
 
-**Dashboard**: Zolutium → `Operations → n8n Health → Workflows ranking`.
+**Dashboard**: API BAC → `Operations → n8n Health → Workflows ranking`.
 
 ### 5.4 Top 5 mensajes de error
 
@@ -243,7 +243,7 @@ awk -F',' 'NR>1 {print $6}' auditoria-fallos-*.csv \
   | sort | uniq -c | sort -rn | head -5
 ```
 
-**Dashboard**: Zolutium → `Operations → n8n Health → Error messages cloud`.
+**Dashboard**: API BAC → `Operations → n8n Health → Error messages cloud`.
 
 ---
 
@@ -253,7 +253,7 @@ awk -F',' 'NR>1 {print $6}' auditoria-fallos-*.csv \
 |---|---|---|
 | **Error Workflow global aplicado a los 15** | Verificación periódica (job semanal) que enumera workflows sin `errorWorkflow` asignado y alerta. Implementar con `GET /api/v1/workflows` y filtrar `errorWorkflow == null`. | Semana 2 |
 | **Pre-prod environment** | Crear segundo workspace n8n cloud `bac-preprod` (o usar `tags=preprod`). Política: ningún cambio se activa en prod sin pasar 24 h en preprod sin fallos. | Semana 3 |
-| **Test workflow en CI** | GitHub Action que valida cada PR a `n8n-workflows/`: schema JSON, `typeVersion` mínimas, presencia de `errorWorkflow`, presencia de `Idempotency-Key` en POST a Zolutium. Bloquear merge si falla. | Semana 3-4 |
+| **Test workflow en CI** | GitHub Action que valida cada PR a `n8n-workflows/`: schema JSON, `typeVersion` mínimas, presencia de `errorWorkflow`, presencia de `Idempotency-Key` en POST a API BAC. Bloquear merge si falla. | Semana 3-4 |
 | **Alerting Slack/email P1 a Allan** | Extender `notify-slack-on-error.json` para que mensajes con `severity=P1-credencial` envíen también email vía SMTP node. Mantener Slack para P2-P4. | Semana 2 |
 | **Backups diarios de workflows** | Cron diario que llama `GET /workflows` y commitea los JSON a una rama `backups/n8n-YYYY-MM-DD` automáticamente. | Semana 4 |
 | **Documentación operativa** | Mover los runbooks de la sección 4 a `bac-loyalty-crm/runbooks/` con un archivo por modo de falla, indexado en README. | Semana 2 |
@@ -298,7 +298,7 @@ Riesgos vivos
 
 Adjuntos / enlaces
 - CSV: {ruta}
-- Dashboard: {url Zolutium}
+- Dashboard: {url API BAC}
 - PRs abiertas: {numeros}
 
 — Elena (orquestación) + ejecutado por Allan
@@ -311,9 +311,9 @@ Adjuntos / enlaces
 | Riesgo | Probabilidad | Impacto | Mitigación |
 |---|---|---|---|
 | El usuario no genera la `N8N_API_KEY` a tiempo, bloqueando Fase 1 | Media | Alto (todo el diagnóstico empírico depende) | Fase 0 reduce sangrado aunque Fase 1 se retrase; matriz hipótesis-fix permite empezar fixes especulativos para H1 y H6 sin diagnóstico fino. |
-| Endpoint Zolutium cambió y requiere coordinación con proveedor externo | Media | Alto | Escalar al contacto técnico de Zolutium en día 1; documentar la versión actual de la API en `CONTEXTO.md` como supuesto a validar. |
-| Backfill duplica datos en Zolutium por falta de idempotencia preexistente | Media | Medio | D3 obliga a `Idempotency-Key` en POST; antes del backfill, validar header en cada workflow afectado o ejecutar con ventana acotada y verificación post-hoc. |
-| Quick wins de Fase 0 ocultan síntomas (Error workflow silencia ruido sin resolver causa) | Baja | Medio | El Slack siempre notifica; el conteo en Zolutium audit no se pierde; la matriz de KPIs sigue midiendo fallos brutos, no solo alertas. |
+| Endpoint API BAC cambió y requiere coordinación con proveedor externo | Media | Alto | Escalar al contacto técnico de API BAC en día 1; documentar la versión actual de la API en `CONTEXTO.md` como supuesto a validar. |
+| Backfill duplica datos en API BAC por falta de idempotencia preexistente | Media | Medio | D3 obliga a `Idempotency-Key` en POST; antes del backfill, validar header en cada workflow afectado o ejecutar con ventana acotada y verificación post-hoc. |
+| Quick wins de Fase 0 ocultan síntomas (Error workflow silencia ruido sin resolver causa) | Baja | Medio | El Slack siempre notifica; el conteo en API BAC audit no se pierde; la matriz de KPIs sigue midiendo fallos brutos, no solo alertas. |
 | Rotar credencial Anthropic invalida workflows fuera del scope BAC | Baja | Alto | Crear credencial dedicada `anthropic-bac-loyalty` antes de rotar; no tocar credenciales compartidas sin inventario previo. |
 | Sandbox web Claude Code sigue sin alcanzar n8n cloud, retrasando verificaciones | Alta | Bajo | Procedimiento documentado para ejecución local; Elena consume CSVs/JSONs que el usuario sube al repo o pega en chat. |
 | Tasa de fallo no baja por debajo de 5% en 7 días | Baja-Media | Alto | Día 5 incluye checkpoint: si la tasa proyectada no llega a 5%, se extiende Fase 2 y se reagenda cierre al día 10 con re-comunicación al usuario. |

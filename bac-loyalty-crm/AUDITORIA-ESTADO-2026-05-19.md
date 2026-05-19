@@ -68,7 +68,7 @@ El CRM cuenta con un scaffolding sólido: documentación de arquitectura, conven
 | `n8n-templates/README.md` | Catálogo de plantillas y patrones compartidos | Completo |
 | `n8n-workflows/scaffolds/INDEX.md` | Mapeo slug -> nombre real -> plantilla | Completo |
 | `agentes/README.md` | Catálogo de sub-agentes, convenciones, sync con `~/.claude/agents/` | Completo |
-| `.env.example` | Plantilla de variables (Zolutium, Anthropic, n8n, PII_SALT) | Completo |
+| `.env.example` | Plantilla de variables (API BAC, Anthropic, n8n, PII_SALT) | Completo |
 
 ### Infraestructura de CI/CD
 
@@ -102,10 +102,10 @@ El CRM cuenta con un scaffolding sólido: documentación de arquitectura, conven
 
 3. **`Notify Slack on Error` no está confirmado como Error Workflow global** — el JSON está versionado pero no hay evidencia de que esté asignado en n8n cloud a los 15 workflows productivos. Mientras tanto, los fallos pasan silenciosos.
 
-4. **El modelo de datos no incluye `LoyaltyTransaction`** — sin entidad canónica para acumulaciones, canjes y reversos, el cálculo de `puntos_balance` y `puntos_vencen` depende de Zolutium sin contrato documentado en el repo. Riesgo de discrepancias entre el dashboard, el workflow y el sub-agente de soporte.
+4. **El modelo de datos no incluye `LoyaltyTransaction`** — sin entidad canónica para acumulaciones, canjes y reversos, el cálculo de `puntos_balance` y `puntos_vencen` depende de API BAC sin contrato documentado en el repo. Riesgo de discrepancias entre el dashboard, el workflow y el sub-agente de soporte.
 
 5. **Supuestos clave sin validar** (de `CONTEXTO.md`):
-   - ¿Zolutium soporta header `Idempotency-Key`? Toda la D3 cae si no.
+   - ¿API BAC soporta header `Idempotency-Key`? Toda la D3 cae si no.
    - ¿`/conversations/recent` devuelve `next_cursor`? La paginación de Agente 7 v2 cae si no.
    - ¿Workspace tiene `claude-opus-4-7` habilitado? Workflows fallarían silenciosamente con fallback no probado.
    - ¿Glass Soler y Esmeralda comparten contactos o son universos separados? Afecta segmentación y reportes.
@@ -150,14 +150,14 @@ El CRM cuenta con un scaffolding sólido: documentación de arquitectura, conven
 
 ### Paso 3 — Activar el Error Workflow global y cerrar las brechas de cumplimiento básicas
 
-**Objetivo**: asignar `notify-slack-on-error` como Error Workflow por defecto en los 15 workflows productivos, definir `SLACK_WEBHOOK_ERRORS` en el workspace, validar que `Idempotency-Key` es honrado por Zolutium con un test (supuesto crítico de D3), añadir al `.gitignore` los patrones de output de auditoría, y crear `modelo-datos/loyalty-transaction.md` con la entidad faltante.
+**Objetivo**: asignar `notify-slack-on-error` como Error Workflow por defecto en los 15 workflows productivos, definir `SLACK_WEBHOOK_ERRORS` en el workspace, validar que `Idempotency-Key` es honrado por API BAC con un test (supuesto crítico de D3), añadir al `.gitignore` los patrones de output de auditoría, y crear `modelo-datos/loyalty-transaction.md` con la entidad faltante.
 
 **Esfuerzo**: 3-4 horas (1 h asignar Error Workflow a los 15, 30 min Slack webhook, 30 min test idempotencia con curl, 30 min `.gitignore`, 1-1.5 h diseñar y documentar `LoyaltyTransaction`).
 
 **Dependencias**:
 - Acceso de Allan a Settings → Workflow defaults en n8n cloud.
 - Slack workspace de BAC con permiso para crear webhook entrante.
-- Acceso a documentación Zolutium o sesión con su equipo técnico para confirmar `Idempotency-Key`.
+- Acceso a documentación API BAC o sesión con su equipo técnico para confirmar `Idempotency-Key`.
 
 **Impacto en el 74.6%**: medio en el corto plazo, alto en el largo plazo. El Error Workflow no reduce fallos pero **garantiza que nunca más se acumulen 170 fallos silenciosos**; cualquier fallo futuro genera alerta P1/P2/P3/P4 en Slack. Validar `Idempotency-Key` cierra el riesgo de duplicados si los reintentos disparados durante el fix del Paso 1 contaminan KB. La entidad `LoyaltyTransaction` cierra la brecha del dominio "Programa de lealtad" para que el sub-agente de soporte y los workflows de marketing trabajen sobre el mismo contrato.
 

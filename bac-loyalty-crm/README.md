@@ -14,7 +14,7 @@ Sistema de gestión y automatización del programa de lealtad de BAC, orquestado
         ┌───────────────────┬─────────────┼─────────────┬───────────────────┐
         ▼                   ▼             ▼             ▼                   ▼
  ┌─────────────┐    ┌─────────────┐  ┌─────────┐  ┌─────────────┐   ┌──────────────┐
- │  Workflows  │    │   Claude    │  │ Zolutium│  │   Skills    │   │   GitHub     │
+ │  Workflows  │    │   Claude    │  │ API BAC│  │   Skills    │   │   GitHub     │
  │     n8n     │◄──►│  Opus 4.7   │  │ Plataf. │  │   locales   │   │  (este repo) │
  │  (15 prod)  │    │     API     │  │  datos  │  │  (2136)     │   │   versionado │
  └─────────────┘    └─────────────┘  └─────────┘  └─────────────┘   └──────────────┘
@@ -70,7 +70,7 @@ bac-loyalty-crm/
 
 ## Convenciones
 
-- **Idempotencia**: todo POST hacia Zolutium debe enviar header `Idempotency-Key`.
+- **Idempotencia**: todo POST hacia API BAC debe enviar header `Idempotency-Key`.
 - **PII**: nunca enviar email/teléfono/documento a Claude sin hashear con `PII_SALT`.
 - **Versionado de modelo Claude**: usar `claude-opus-4-7` por defecto; fallback `claude-sonnet-4-6`.
 - **Confianza mínima IA**: `KB_CONFIDENCE_THRESHOLD=0.6`. Batches por debajo van a rama de descarte.
