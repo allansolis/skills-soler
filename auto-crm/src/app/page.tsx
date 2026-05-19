@@ -3,6 +3,7 @@ import { contacts, deals, activities, pipelineStages, conversations } from "@/db
 import { eq, asc, desc, and } from "drizzle-orm";
 import { getBusinessFromCookies, BUSINESS_LABELS } from "@/lib/getBusinessFromCookies";
 import { KPICards } from "@/components/dashboard/KPICards";
+import { KpiWidget } from "@/components/dashboard/KpiWidget";
 import { PipelineChart } from "@/components/dashboard/PipelineChart";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { NotificationBanner } from "@/components/dashboard/NotificationBanner";
@@ -208,6 +209,9 @@ export default async function DashboardPage() {
 
       {/* Notifications */}
       <NotificationBanner />
+
+      {/* KPI ejecutivos (response rate, conversion, ticket promedio, revenue) */}
+      <KpiWidget />
 
       {/* KPI Cards - 8 metricas */}
       <KPICards stats={stats} />
