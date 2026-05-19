@@ -1,0 +1,311 @@
+{
+  "name": "Agente 11 - Onboarding de nuevo cliente loyalty con bienvenida personalizada",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "loyalty/onboarding",
+        "responseMode": "responseNode",
+        "options": {
+          "ignoreBots": true
+        }
+      },
+      "id": "webhook-zolutium",
+      "name": "Webhook nuevo cliente",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [120, 400],
+      "webhookId": "loyalty-onboarding-bac"
+    },
+    {
+      "parameters": {},
+      "id": "manual-trigger-pruebas",
+      "name": "Manual Trigger (pruebas)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [120, 600]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normaliza el payload entrante de Zolutium. El webhook entrega:\n//   { contact_id, marca, canal_preferido, evento, fired_at }\n// Validamos lo minimo, derivamos identificadores y armamos las idempotency keys.\n// Si llegamos desde Manual Trigger sin body, usamos un payload mock para pruebas.\nconst incoming = $input.first().json || {};\nlet body = incoming.body || incoming;\nif (!body || (!body.contact_id && !body.contactId && !body.id)) {\n  body = {\n    contact_id: 'mock-contact-uuid-0001',\n    marca: 'glass-soler',\n    canal_preferido: 'email',\n    __mock: true\n  };\n}\nconst contactId = body.contact_id || body.contactId || body.id;\nconst marca = (body.marca || body.brand || '').toLowerCase();\nconst canalPreferido = (body.canal_preferido || body.preferred_channel || 'email').toLowerCase();\n\nif (!contactId) {\n  throw new Error('Payload sin contact_id: ' + JSON.stringify(body).slice(0, 300));\n}\nif (!['glass-soler', 'esmeralda'].includes(marca)) {\n  throw new Error(`Marca invalida '${marca}'. Esperado: glass-soler | esmeralda`);\n}\nif (!['email', 'whatsapp', 'sms', 'push'].includes(canalPreferido)) {\n  throw new Error(`canal_preferido invalido '${canalPreferido}'`);\n}\n\nconst recibidoEn = new Date().toISOString();\nreturn [{\n  json: {\n    contact_id: contactId,\n    marca,\n    canal_preferido: canalPreferido,\n    recibido_en: recibidoEn,\n    es_mock: !!body.__mock,\n    idem_message: `welcome-${contactId}`,\n    idem_grant: `welcome-grant-${contactId}`,\n    idem_audit: `welcome-audit-${contactId}`\n  }\n}];"
+      },
+      "id": "init-onboarding",
+      "name": "Init onboarding (validar payload)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [340, 400]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/contacts/{{$json.contact_id}}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "include", "value": "segment,tier,language,marca" }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "retry": { "limit": 3, "waitBetween": 2000 }
+        }
+      },
+      "id": "get-contact",
+      "name": "GET contacto",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [560, 400],
+      "credentials": {
+        "httpHeaderAuth": { "id": "zolutium-api", "name": "Zolutium API" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// D2 — Sanitizacion PII antes de enviar a Claude.\n// Hasheamos el contact_id y NUNCA exponemos email/telefono/nombre/documento.\n// Solo enviamos atributos no PII: segmento, tier inicial, idioma, marca, canal.\nconst crypto = require('crypto');\nconst init = $('Init onboarding (validar payload)').first().json;\nconst contacto = $input.first().json || {};\nconst salt = $env.PII_SALT || 'bac-loyalty';\nconst hashId = id => crypto.createHash('sha256').update(String(id) + salt).digest('hex').slice(0, 12);\n\nconst beneficiosPorTier = {\n  bronze: ['1x acumulacion de puntos', 'acceso a catalogo basico', 'invitaciones a sorteos mensuales'],\n  silver: ['1.25x acumulacion', 'descuentos exclusivos 5%', 'soporte prioritario'],\n  gold: ['1.5x acumulacion', 'descuentos exclusivos 10%', 'eventos VIP', 'cumpleanos doble puntos'],\n  platinum: ['2x acumulacion', 'descuentos exclusivos 15%', 'concierge dedicado', 'experiencias premium']\n};\n\nconst tier = (contacto.tier || 'bronze').toLowerCase();\nconst segmento = contacto.segment || 'new';\nconst idioma = (contacto.language || 'es').toLowerCase();\n\nconst payloadIA = {\n  id_hash: hashId(init.contact_id),\n  marca: init.marca,\n  canal_preferido: init.canal_preferido,\n  tier_inicial: tier,\n  segmento,\n  idioma,\n  beneficios_tier: beneficiosPorTier[tier] || beneficiosPorTier.bronze,\n  puntos_bienvenida: 100,\n  pii_sanitized: true\n};\n\nreturn [{\n  json: {\n    ...init,\n    payload_ia: payloadIA,\n    tier_inicial: tier,\n    segmento,\n    idioma\n  }\n}];"
+      },
+      "id": "preparar-pii-safe",
+      "name": "Sanitizar PII (preparar prompt)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [780, 400]
+    },
+    {
+      "parameters": {
+        "modelId": "claude-opus-4-7",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Eres redactor de bienvenida del CRM BAC Loyalty. DEBES responder EXCLUSIVAMENTE con JSON valido en espanol, sin markdown, sin backticks, sin texto adicional fuera del objeto JSON. Si no puedes generar la bienvenida, devuelve {\"error\":\"<razon>\",\"confianza\":0}. Tono: profesional cercano, sin emojis, evita superlativos vacios. Nunca inventes nombre, email, telefono ni documento del cliente: usa formulas neutras como 'Hola' o referencias al tier/segmento."
+            },
+            {
+              "role": "user",
+              "content": "=Genera un mensaje de bienvenida personalizado para un nuevo cliente del programa de lealtad. Devuelve EXACTAMENTE este esquema JSON:\n{\n  \"asunto\": \"...\",\n  \"cuerpo_markdown\": \"...\",\n  \"cta_url\": \"https://...\",\n  \"confianza\": 0.0\n}\n\nReglas del contenido:\n- Saludo neutro en espanol (no uses nombres ya que no los conoces).\n- Menciona explicitamente los beneficios del tier inicial.\n- Llamada a la accion clara hacia el PRIMER CANJE de puntos.\n- Mencion al evento aniversario futuro (un ano despues del onboarding).\n- Longitud cuerpo_markdown: entre 600 y 1200 caracteres.\n- La cta_url debe construirse con la marca: https://{{$json.marca}}.bac.cr/canjear?ref=welcome\n\nDATOS DEL CLIENTE (PII sanitizada, no contiene identificadores personales):\n{{ JSON.stringify($json.payload_ia) }}"
+            }
+          ]
+        },
+        "options": {
+          "maxTokensToSample": 2048,
+          "temperature": 0.4
+        }
+      },
+      "id": "claude-bienvenida",
+      "name": "Claude genera bienvenida",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [1000, 400],
+      "credentials": {
+        "anthropicApi": { "id": "anthropic-bac", "name": "Anthropic BAC" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validacion robusta de la salida de Claude (D5).\n// Extrae JSON aunque venga envuelto en markdown o con texto antes/despues.\nconst raw = $input.first().json?.content?.[0]?.text\n         || $input.first().json?.text\n         || $input.first().json?.message?.content\n         || '';\n\nfunction extractJson(s) {\n  const fenced = s.match(/```(?:json)?\\s*([\\s\\S]*?)```/);\n  if (fenced) return fenced[1].trim();\n  const start = s.indexOf('{');\n  const end = s.lastIndexOf('}');\n  if (start >= 0 && end > start) return s.slice(start, end + 1);\n  return s;\n}\n\nconst ctx = $('Sanitizar PII (preparar prompt)').first().json;\n\nlet mensaje;\ntry {\n  mensaje = JSON.parse(extractJson(raw));\n} catch (e) {\n  return [{\n    json: {\n      ...ctx,\n      __invalid_json: true,\n      raw_excerpt: raw.slice(0, 500),\n      error: e.message,\n      descartar: true,\n      confianza: 0\n    }\n  }];\n}\n\nconst confianza = Number(mensaje.confianza ?? 0);\nconst umbral = Number($env.KB_CONFIDENCE_THRESHOLD || 0.6);\nconst tieneCampos = !!(mensaje.asunto && mensaje.cuerpo_markdown && mensaje.cta_url);\nconst descartar = !tieneCampos || confianza < umbral || !!mensaje.error;\n\nreturn [{\n  json: {\n    ...ctx,\n    asunto: mensaje.asunto || null,\n    cuerpo_markdown: mensaje.cuerpo_markdown || null,\n    cta_url: mensaje.cta_url || null,\n    confianza,\n    descartar,\n    generado_en: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "validar-claude",
+      "name": "Validar salida Claude",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1220, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "leftValue": "={{$json.descartar}}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-descartar",
+      "name": "Descartar bienvenida?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1440, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Rama de descarte: registramos sin enviar mensaje ni otorgar puntos.\nconst j = $input.first().json;\nconsole.log('[Agente-11] Bienvenida descartada:', JSON.stringify({\n  contact_id_hash: j.payload_ia?.id_hash,\n  marca: j.marca,\n  invalid_json: !!j.__invalid_json,\n  confianza: j.confianza,\n  error: j.error\n}));\nreturn [{ json: j }];"
+      },
+      "id": "log-descarte",
+      "name": "Log descarte",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1660, 560]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/messages/queue",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Idempotency-Key", "value": "={{$json.idem_message}}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contact_id\": \"{{$json.contact_id}}\",\n  \"marca\": \"{{$json.marca}}\",\n  \"canal\": \"{{$json.canal_preferido}}\",\n  \"tipo\": \"welcome\",\n  \"asunto\": {{ JSON.stringify($json.asunto) }},\n  \"cuerpo_markdown\": {{ JSON.stringify($json.cuerpo_markdown) }},\n  \"cta_url\": {{ JSON.stringify($json.cta_url) }},\n  \"metadata\": {\n    \"tier_inicial\": \"{{$json.tier_inicial}}\",\n    \"segmento\": \"{{$json.segmento}}\",\n    \"idioma\": \"{{$json.idioma}}\",\n    \"confianza\": {{$json.confianza}},\n    \"generado_en\": \"{{$json.generado_en}}\"\n  }\n}",
+        "options": {
+          "timeout": 30000,
+          "retry": { "limit": 3, "waitBetween": 5000 }
+        }
+      },
+      "id": "enviar-mensaje",
+      "name": "POST mensaje bienvenida",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1660, 280],
+      "credentials": {
+        "httpHeaderAuth": { "id": "zolutium-api", "name": "Zolutium API" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/loyalty/grants",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Idempotency-Key", "value": "={{$json.idem_grant}}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contact_id\": \"{{$json.contact_id}}\",\n  \"marca\": \"{{$json.marca}}\",\n  \"motivo\": \"welcome_bonus\",\n  \"puntos\": 100,\n  \"vencimiento_meses\": 12,\n  \"metadata\": {\n    \"tier_inicial\": \"{{$json.tier_inicial}}\",\n    \"origen\": \"agente-11-onboarding\"\n  }\n}",
+        "options": {
+          "timeout": 30000,
+          "retry": { "limit": 3, "waitBetween": 5000 }
+        }
+      },
+      "id": "otorgar-puntos",
+      "name": "POST otorgar puntos bienvenida",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1880, 280],
+      "credentials": {
+        "httpHeaderAuth": { "id": "zolutium-api", "name": "Zolutium API" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/audit/onboarding",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Idempotency-Key", "value": "={{$json.idem_audit}}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contact_id\": \"{{$json.contact_id}}\",\n  \"marca\": \"{{$json.marca}}\",\n  \"canal_preferido\": \"{{$json.canal_preferido}}\",\n  \"tier_inicial\": \"{{$json.tier_inicial}}\",\n  \"segmento\": \"{{$json.segmento}}\",\n  \"idioma\": \"{{$json.idioma}}\",\n  \"confianza_ia\": {{$json.confianza}},\n  \"recibido_en\": \"{{$json.recibido_en}}\",\n  \"generado_en\": \"{{$json.generado_en}}\",\n  \"acciones\": {\n    \"mensaje_encolado\": true,\n    \"puntos_otorgados\": 100\n  }\n}",
+        "options": {
+          "timeout": 30000,
+          "retry": { "limit": 3, "waitBetween": 5000 }
+        }
+      },
+      "id": "audit-onboarding",
+      "name": "POST auditoria onboarding",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2100, 280],
+      "credentials": {
+        "httpHeaderAuth": { "id": "zolutium-api", "name": "Zolutium API" }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"ok\": true,\n  \"contact_id\": \"{{$json.contact_id}}\",\n  \"marca\": \"{{$json.marca}}\",\n  \"mensaje_encolado\": true,\n  \"puntos_otorgados\": 100,\n  \"confianza\": {{$json.confianza}}\n}",
+        "options": {}
+      },
+      "id": "responder-ok",
+      "name": "Responder 200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2320, 280]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"ok\": false,\n  \"motivo\": \"bienvenida_descartada\",\n  \"contact_id\": \"{{$json.contact_id}}\",\n  \"invalid_json\": {{ $json.__invalid_json ? true : false }},\n  \"confianza\": {{$json.confianza}}\n}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "id": "responder-descarte",
+      "name": "Responder 202 descarte",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1880, 560]
+    }
+  ],
+  "connections": {
+    "Webhook nuevo cliente": {
+      "main": [[{ "node": "Init onboarding (validar payload)", "type": "main", "index": 0 }]]
+    },
+    "Manual Trigger (pruebas)": {
+      "main": [[{ "node": "Init onboarding (validar payload)", "type": "main", "index": 0 }]]
+    },
+    "Init onboarding (validar payload)": {
+      "main": [[{ "node": "GET contacto", "type": "main", "index": 0 }]]
+    },
+    "GET contacto": {
+      "main": [[{ "node": "Sanitizar PII (preparar prompt)", "type": "main", "index": 0 }]]
+    },
+    "Sanitizar PII (preparar prompt)": {
+      "main": [[{ "node": "Claude genera bienvenida", "type": "main", "index": 0 }]]
+    },
+    "Claude genera bienvenida": {
+      "main": [[{ "node": "Validar salida Claude", "type": "main", "index": 0 }]]
+    },
+    "Validar salida Claude": {
+      "main": [[{ "node": "Descartar bienvenida?", "type": "main", "index": 0 }]]
+    },
+    "Descartar bienvenida?": {
+      "main": [
+        [{ "node": "Log descarte", "type": "main", "index": 0 }],
+        [{ "node": "POST mensaje bienvenida", "type": "main", "index": 0 }]
+      ]
+    },
+    "Log descarte": {
+      "main": [[{ "node": "Responder 202 descarte", "type": "main", "index": 0 }]]
+    },
+    "POST mensaje bienvenida": {
+      "main": [[{ "node": "POST otorgar puntos bienvenida", "type": "main", "index": 0 }]]
+    },
+    "POST otorgar puntos bienvenida": {
+      "main": [[{ "node": "POST auditoria onboarding", "type": "main", "index": 0 }]]
+    },
+    "POST auditoria onboarding": {
+      "main": [[{ "node": "Responder 200 OK", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "bac-loyalty" },
+    { "name": "onboarding" },
+    { "name": "agente-11" }
+  ]
+}
