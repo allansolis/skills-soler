@@ -1,0 +1,386 @@
+{
+  "name": "Optimizador de Campañas AI - Esmeralda",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 2
+            }
+          ]
+        }
+      },
+      "id": "trigger",
+      "name": "Cada 2h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        120,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// SCAFFOLD generado desde tpl-agente-optimizador.json. Reemplazar con JSON real cuando esté disponible.\nconst w = new Date(); w.setMinutes(0,0,0); w.setHours(Math.floor(w.getHours()/2)*2);\nreturn [{ json: { batch_id: `opt-${w.toISOString().replace(/[:.]/g,'-')}`, ventana: w.toISOString() } }];"
+      },
+      "id": "init",
+      "name": "Init",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/campaigns/running",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "limit": 3,
+            "waitBetween": 2000
+          }
+        }
+      },
+      "id": "get-activas",
+      "name": "GET campañas activas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        400
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "zolutium-api",
+          "name": "Zolutium API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {
+          "reset": true
+        }
+      },
+      "id": "por-campana",
+      "name": "Por campaña",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        760,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/campaigns/{{$json.id}}/metrics",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "metricas",
+      "name": "GET metricas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        980,
+        400
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "zolutium-api",
+          "name": "Zolutium API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": "claude-opus-4-7",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Eres optimizador de campañas. Devuelve EXCLUSIVAMENTE JSON con: {accion: 'mantener'|'ajustar_presupuesto'|'pausar'|'reformular', detalle: string, delta_presupuesto_pct: number, razon: string, confianza: number}. Sin markdown."
+            },
+            {
+              "role": "user",
+              "content": "=Campaña activa con estas métricas:\n{{ JSON.stringify($json) }}\n\n¿Qué acción de optimización recomiendas?"
+            }
+          ]
+        },
+        "options": {
+          "maxTokensToSample": 1500,
+          "temperature": 0.2
+        }
+      },
+      "id": "ia",
+      "name": "Claude decide",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        1200,
+        400
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "anthropic-bac",
+          "name": "Anthropic BAC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json?.content?.[0]?.text || $input.first().json?.text || '';\nfunction extract(s){ const m=s.match(/```(?:json)?\\s*([\\s\\S]*?)```/); if(m) return m[1]; const i=s.indexOf('{'), j=s.lastIndexOf('}'); return (i>=0 && j>i)?s.slice(i,j+1):s; }\nlet a; try{ a=JSON.parse(extract(raw)); } catch(e){ return [{ json:{ __invalid:true, error:e.message } }]; }\nconst campaign = $('GET metricas').first().json;\nreturn [{ json:{ ...a, campaign_id: campaign.id, batch_id: $('Init').first().json.batch_id, aplicar: a.confianza >= 0.7 && a.accion !== 'mantener' } }];"
+      },
+      "id": "validar",
+      "name": "Validar decision",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1420,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.aplicar}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-aplicar",
+      "name": "Aplicar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1640,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/campaigns/{{$json.campaign_id}}/actions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Idempotency-Key",
+              "value": "={{$json.batch_id}}-{{$json.campaign_id}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"accion\": \"{{$json.accion}}\",\n  \"delta_presupuesto_pct\": {{$json.delta_presupuesto_pct}},\n  \"razon\": {{ JSON.stringify($json.razon) }}\n}",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "limit": 3,
+            "waitBetween": 5000
+          }
+        }
+      },
+      "id": "aplicar",
+      "name": "Aplicar accion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1860,
+        320
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "zolutium-api",
+          "name": "Zolutium API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/audit/optimizer",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "auditar",
+      "name": "Auditar decision",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1860,
+        520
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "zolutium-api",
+          "name": "Zolutium API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Cada 2h": {
+      "main": [
+        [
+          {
+            "node": "Init",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Init": {
+      "main": [
+        [
+          {
+            "node": "GET campañas activas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET campañas activas": {
+      "main": [
+        [
+          {
+            "node": "Por campaña",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Por campaña": {
+      "main": [
+        [
+          {
+            "node": "GET metricas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET metricas": {
+      "main": [
+        [
+          {
+            "node": "Claude decide",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude decide": {
+      "main": [
+        [
+          {
+            "node": "Validar decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar decision": {
+      "main": [
+        [
+          {
+            "node": "Aplicar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aplicar?": {
+      "main": [
+        [
+          {
+            "node": "Auditar decision",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Aplicar accion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aplicar accion": {
+      "main": [
+        [
+          {
+            "node": "Por campaña",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auditar decision": {
+      "main": [
+        [
+          {
+            "node": "Por campaña",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all"
+  },
+  "tags": [
+    {
+      "name": "scaffold"
+    },
+    {
+      "name": "esmeralda"
+    }
+  ]
+}

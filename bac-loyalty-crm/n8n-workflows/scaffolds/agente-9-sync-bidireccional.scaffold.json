@@ -1,0 +1,279 @@
+{
+  "name": "Agente 9 - Sincronización CRM Bidireccional",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "trigger",
+      "name": "Cron 15min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        120,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// SCAFFOLD generado desde tpl-agente-sync-bidireccional.json. Reemplazar con JSON real cuando esté disponible.\nconst t = new Date(); t.setSeconds(0,0); t.setMinutes(Math.floor(t.getMinutes()/15)*15);\nreturn [{ json: { batch_id: `sync-${t.toISOString().replace(/[:.]/g,'-')}`, window_start: t.toISOString() } }];"
+      },
+      "id": "init-batch",
+      "name": "Init Batch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/contacts/changes",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "since",
+              "value": "={{$json.window_start}}"
+            },
+            {
+              "name": "cursor",
+              "value": "={{$json.cursor || ''}}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "limit": 3,
+            "waitBetween": 2000
+          }
+        }
+      },
+      "id": "get-origen",
+      "name": "GET cambios origen",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        280
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "zolutium-api",
+          "name": "Zolutium API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/external/crm/contacts/changes",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "since",
+              "value": "={{$json.window_start}}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "limit": 3,
+            "waitBetween": 2000
+          }
+        }
+      },
+      "id": "get-destino",
+      "name": "GET cambios destino",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        520
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "zolutium-api",
+          "name": "Zolutium API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Detecta conflictos: mismo recurso modificado en ambos lados\nconst origen = $('GET cambios origen').first().json?.data || [];\nconst destino = $('GET cambios destino').first().json?.data || [];\nconst destinoPorId = new Map(destino.map(d => [d.id, d]));\n\nconst aSync = [];\nconst conflictos = [];\nfor (const o of origen) {\n  const d = destinoPorId.get(o.id);\n  if (!d) { aSync.push({ destino: 'destino', recurso: o }); continue; }\n  if (new Date(o.updated_at) > new Date(d.updated_at)) {\n    aSync.push({ destino: 'destino', recurso: o });\n  } else if (new Date(d.updated_at) > new Date(o.updated_at)) {\n    aSync.push({ destino: 'origen', recurso: d });\n  } else {\n    // mismo timestamp pero contenido distinto = conflicto\n    if (JSON.stringify(o) !== JSON.stringify(d)) conflictos.push({ origen: o, destino: d });\n  }\n}\nreturn [{ json: { batch_id: $('Init Batch').first().json.batch_id, a_sync: aSync, conflictos } }];"
+      },
+      "id": "diff",
+      "name": "Calcular diff",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "split",
+      "name": "Por recurso",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        980,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/{{$json.destino === 'destino' ? 'external/crm/contacts' : 'contacts'}}/{{$json.recurso.id}}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Idempotency-Key",
+              "value": "={{$json.batch_id}}-{{$json.recurso.id}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.recurso) }}",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "limit": 3,
+            "waitBetween": 5000
+          }
+        }
+      },
+      "id": "put-recurso",
+      "name": "PUT recurso",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        400
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "zolutium-api",
+          "name": "Zolutium API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Cron 15min": {
+      "main": [
+        [
+          {
+            "node": "Init Batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Init Batch": {
+      "main": [
+        [
+          {
+            "node": "GET cambios origen",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GET cambios destino",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET cambios origen": {
+      "main": [
+        [
+          {
+            "node": "Calcular diff",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET cambios destino": {
+      "main": [
+        [
+          {
+            "node": "Calcular diff",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcular diff": {
+      "main": [
+        [
+          {
+            "node": "Por recurso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Por recurso": {
+      "main": [
+        [
+          {
+            "node": "PUT recurso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PUT recurso": {
+      "main": [
+        [
+          {
+            "node": "Por recurso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all"
+  },
+  "tags": [
+    {
+      "name": "scaffold"
+    }
+  ]
+}

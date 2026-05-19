@@ -1,0 +1,375 @@
+{
+  "name": "Creador y estratega de campañas con IA - Glass Soler",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 4
+            }
+          ]
+        }
+      },
+      "id": "trigger",
+      "name": "Cada 4h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        120,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// SCAFFOLD generado desde tpl-agente-marketing-ia.json. Reemplazar con JSON real cuando esté disponible.\nconst w = new Date(); w.setMinutes(0,0,0); w.setHours(Math.floor(w.getHours()/4)*4);\nreturn [{ json: { batch_id: `mkt-${w.toISOString().replace(/[:.]/g,'-')}`, ventana: w.toISOString(), marca: $env.MARCA_VERTICAL || 'glass-soler' } }];"
+      },
+      "id": "init",
+      "name": "Init",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/segments/active",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "marca",
+              "value": "={{$json.marca}}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "limit": 3,
+            "waitBetween": 2000
+          }
+        }
+      },
+      "id": "get-segmentos",
+      "name": "GET segmentos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        280
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "zolutium-api",
+          "name": "Zolutium API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/campaigns/performance",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": [
+          {
+            "name": "marca",
+            "value": "={{$json.marca}}"
+          },
+          {
+            "name": "since_hours",
+            "value": "168"
+          }
+        ],
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "limit": 3,
+            "waitBetween": 2000
+          }
+        }
+      },
+      "id": "get-performance",
+      "name": "GET performance ult 7d",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        520
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "zolutium-api",
+          "name": "Zolutium API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Sanitiza: solo segmentos + metricas agregadas, sin PII individual\nconst seg = $('GET segmentos').first().json?.data || [];\nconst perf = $('GET performance ult 7d').first().json?.data || [];\nreturn [{ json: {\n  batch_id: $('Init').first().json.batch_id,\n  marca: $('Init').first().json.marca,\n  segmentos: seg.map(s => ({ id: s.id, nombre: s.nombre, size: s.size, tier: s.tier })),\n  performance: perf.map(p => ({ campaign_id: p.id, ctr: p.ctr, conversion: p.conversion, revenue: p.revenue }))\n}}];"
+      },
+      "id": "sanitizar",
+      "name": "Sanitizar payload IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": "claude-opus-4-7",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Eres el Cerebro Marketing IA del CRM BAC Loyalty. Devuelve EXCLUSIVAMENTE JSON con la estructura: {insights:[string], oportunidades:[{segmento_id,accion,impacto_estimado}], advertencias:[string], confianza:number}. Sin markdown."
+            },
+            {
+              "role": "user",
+              "content": "=Marca: {{$json.marca}}. Analiza segmentos activos y performance de campañas:\n{{ JSON.stringify($json) }}"
+            }
+          ]
+        },
+        "options": {
+          "maxTokensToSample": 4096,
+          "temperature": 0.3
+        }
+      },
+      "id": "ia",
+      "name": "Claude analiza",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        980,
+        400
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "anthropic-bac",
+          "name": "Anthropic BAC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json?.content?.[0]?.text || $input.first().json?.text || '';\nfunction extract(s){ const m = s.match(/```(?:json)?\\s*([\\s\\S]*?)```/); if(m) return m[1]; const i=s.indexOf('{'), j=s.lastIndexOf('}'); return (i>=0 && j>i)?s.slice(i,j+1):s; }\nlet a; try { a = JSON.parse(extract(raw)); } catch(e){ return [{ json:{ __invalid:true, error:e.message } }]; }\nconst c = Number(a.confianza ?? 0);\nreturn [{ json: { ...a, batch_id: $('Sanitizar payload IA').first().json.batch_id, marca: $('Sanitizar payload IA').first().json.marca, descartar: c < Number($env.KB_CONFIDENCE_THRESHOLD || 0.6) } }];"
+      },
+      "id": "validar",
+      "name": "Validar IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.__invalid || $json.descartar}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-descartar",
+      "name": "Descartar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1420,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/marketing/insights",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Idempotency-Key",
+              "value": "={{$json.batch_id}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "limit": 3,
+            "waitBetween": 5000
+          }
+        }
+      },
+      "id": "guardar",
+      "name": "Guardar insights",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1640,
+        320
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "zolutium-api",
+          "name": "Zolutium API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "console.log('[mkt] descartado:', JSON.stringify($input.first().json));\nreturn [{ json: $input.first().json }];"
+      },
+      "id": "log-descarte",
+      "name": "Log descarte",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1640,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "Cada 4h": {
+      "main": [
+        [
+          {
+            "node": "Init",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Init": {
+      "main": [
+        [
+          {
+            "node": "GET segmentos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GET performance ult 7d",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET segmentos": {
+      "main": [
+        [
+          {
+            "node": "Sanitizar payload IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET performance ult 7d": {
+      "main": [
+        [
+          {
+            "node": "Sanitizar payload IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sanitizar payload IA": {
+      "main": [
+        [
+          {
+            "node": "Claude analiza",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude analiza": {
+      "main": [
+        [
+          {
+            "node": "Validar IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar IA": {
+      "main": [
+        [
+          {
+            "node": "Descartar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descartar?": {
+      "main": [
+        [
+          {
+            "node": "Log descarte",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Guardar insights",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all"
+  },
+  "tags": [
+    {
+      "name": "scaffold"
+    },
+    {
+      "name": "glass-soler"
+    }
+  ]
+}

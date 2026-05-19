@@ -31,13 +31,20 @@ bac-loyalty-crm/
 ├── n8n-workflows/               ← workflows productivos versionados (fuente de verdad)
 │   ├── README.md
 │   ├── agente-7-actualizador-kb-inteligente.json       (v1)
-│   └── agente-7-actualizador-kb-inteligente.v2.json    (v2 con fixes)
-├── n8n-templates/               ← plantillas base reutilizables para los 14 pendientes
+│   ├── agente-7-actualizador-kb-inteligente.v2.json    (v2 con fixes)
+│   ├── notify-slack-on-error.json                      (workflow global de errores)
+│   └── scaffolds/                                       (13 scaffolds para reemplazar con JSON real)
+│       ├── INDEX.md
+│       └── *.scaffold.json
+├── n8n-templates/               ← plantillas base reutilizables
 │   ├── README.md
 │   ├── tpl-agente-sync-bidireccional.json
 │   ├── tpl-agente-informe-diario.json
 │   ├── tpl-agente-marketing-ia.json
 │   └── tpl-agente-optimizador.json
+├── scripts/                     ← automatizaciones operativas
+│   ├── auditar-fallos.sh                                (diagnóstico del 74.6%)
+│   └── generar-scaffolds.py                             (regenera scaffolds desde plantillas)
 └── modelo-datos/
     └── README.md                ← entidades CRM, relaciones, IDs estables
 ```
@@ -46,7 +53,7 @@ bac-loyalty-crm/
 
 | Área | Estado | Detalle |
 |---|---|---|
-| Workflows productivos | 15 en n8n cloud | Solo 1 versionado (`Agente 7 v2`) |
+| Workflows productivos | 15 en n8n cloud | 1 versionado real (`Agente 7 v2`) + 13 scaffolds + 1 workflow de errores |
 | Tasa de fallo n8n | **74.6%** (170/228) | Crítico — ver `AUDITORIA-FALLOS.md` |
 | Sub-agente orquestador | ✅ Elena | `~/.claude/agents/elena.md` |
 | MCP n8n | ✅ configurado | Funciona solo en Claude Code local (sandbox bloquea host) |
