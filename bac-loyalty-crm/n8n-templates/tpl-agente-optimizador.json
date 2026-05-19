@@ -55,7 +55,7 @@
         "url": "={{$env.ZOLUTIUM_BASE_URL}}/campaigns/{{$json.id}}/metrics",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
-        "options": { "timeout": 30000 }
+        "options": { "timeout": 30000, "retry": { "limit": 3, "waitBetween": 2000 } }
       },
       "id": "metricas",
       "name": "GET metricas",
@@ -132,10 +132,12 @@
         "url": "={{$env.ZOLUTIUM_BASE_URL}}/audit/optimizer",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Idempotency-Key", "value": "={{$json.batch_id}}-audit-{{$json.campaign_id}}" }] },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json) }}",
-        "options": { "timeout": 30000 }
+        "options": { "timeout": 30000, "retry": { "limit": 3, "waitBetween": 5000 } }
       },
       "id": "auditar",
       "name": "Auditar decision",

@@ -5,7 +5,6 @@ Reemplazar cada uno por el JSON real descargado desde n8n cloud apenas esté dis
 
 | Slug | Nombre real | Plantilla base |
 |---|---|---|
-| `agente-8-gestor-inventario` | Agente 8 - Gestor de Inventario CRM | `tpl-agente-optimizador.json` |
 | `agente-9-sync-bidireccional` | Agente 9 - Sincronización CRM Bidireccional | `tpl-agente-sync-bidireccional.json` |
 | `agente-10-informe-ejecutivo` | Agente 10 - Informe Ejecutivo Diario | `tpl-agente-informe-diario.json` |
 | `automatizador-tuberias-glass` | Automatizador principal de tuberías - Glass Soler | `tpl-agente-optimizador.json` |

@@ -1,0 +1,59 @@
+name: BAC Loyalty CRM — Lint workflows
+
+on:
+  push:
+    paths:
+      - "bac-loyalty-crm/**"
+  pull_request:
+    paths:
+      - "bac-loyalty-crm/**"
+
+jobs:
+  lint-workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validar JSONs sintacticamente
+        run: |
+          set -e
+          for f in $(find bac-loyalty-crm -name "*.json"); do
+            python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f" || { echo "FAIL: $f"; exit 1; }
+          done
+          echo "Todos los JSONs son validos"
+
+      - name: Linter de convenciones n8n
+        run: python3 bac-loyalty-crm/scripts/lint-workflows.py --strict
+
+      - name: Validar scripts bash
+        run: |
+          for s in bac-loyalty-crm/scripts/*.sh; do
+            bash -n "$s" || { echo "Syntax error in $s"; exit 1; }
+          done
+
+      - name: Verificar scaffolds estan sincronizados con plantillas
+        run: |
+          python3 bac-loyalty-crm/scripts/generar-scaffolds.py > /tmp/regen.log 2>&1
+          if [ -n "$(git status --porcelain bac-loyalty-crm/n8n-workflows/scaffolds/)" ]; then
+            echo "Los scaffolds estan desincronizados. Ejecuta generar-scaffolds.py y commitea."
+            git diff bac-loyalty-crm/n8n-workflows/scaffolds/ | head -50
+            exit 1
+          fi
+          echo "Scaffolds sincronizados con plantillas"
+
+      - name: Verificar .env no esta versionado
+        run: |
+          if [ -f bac-loyalty-crm/.env ]; then
+            echo "ERROR: bac-loyalty-crm/.env no debe versionarse"
+            exit 1
+          fi
+          if ! grep -q "^\.env$" .gitignore; then
+            echo "ERROR: .env debe estar en .gitignore"
+            exit 1
+          fi
+          echo ".env correctamente excluido"

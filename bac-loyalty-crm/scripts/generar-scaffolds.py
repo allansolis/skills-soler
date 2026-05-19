@@ -19,9 +19,6 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 # Mapeo workflow -> plantilla + parámetros
 WORKFLOWS = [
     # (slug, nombre, plantilla, sustituciones)
-    ("agente-8-gestor-inventario", "Agente 8 - Gestor de Inventario CRM",
-     "tpl-agente-optimizador.json",
-     {"___ENDPOINT_ORIGEN___": "inventory/items"}),
     ("agente-9-sync-bidireccional", "Agente 9 - Sincronización CRM Bidireccional",
      "tpl-agente-sync-bidireccional.json",
      {"___ENDPOINT_ORIGEN___": "contacts", "___ENDPOINT_DESTINO___": "external/crm/contacts"}),
