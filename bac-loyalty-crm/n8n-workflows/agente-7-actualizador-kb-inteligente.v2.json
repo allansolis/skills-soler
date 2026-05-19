@@ -1,0 +1,346 @@
+{
+  "name": "Agente 7 - Actualizador de KB Inteligente (v2)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "id": "trigger-cada-6-horas",
+      "name": "Cada 6 horas",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [120, 480]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FIX 5: PII. Generamos un batch_id determinístico por ventana de tiempo\n// que sirve como idempotency key para los POST de Zolutium.\nconst windowStart = new Date();\nwindowStart.setMinutes(0, 0, 0);\nwindowStart.setHours(Math.floor(windowStart.getHours() / 6) * 6);\nconst batchId = `kb-${windowStart.toISOString().replace(/[:.]/g, '-')}`;\nreturn [{ json: { batch_id: batchId, window_start: windowStart.toISOString() } }];"
+      },
+      "id": "init-batch",
+      "name": "Init Batch (idempotency)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 480]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/conversations/recent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "since", "value": "={{$json.window_start}}" },
+            { "name": "limit", "value": "200" },
+            { "name": "cursor", "value": "={{$json.cursor || ''}}" }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "retry": { "limit": 3, "waitBetween": 2000 }
+        }
+      },
+      "id": "get-conversaciones",
+      "name": "GET Conversaciones (paginado)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [540, 360],
+      "credentials": {
+        "httpHeaderAuth": { "id": "zolutium-api", "name": "Zolutium API" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// FIX 1: Paginación. Acumula páginas hasta que la API no devuelva next_cursor.\nconst items = $('Acumular Conversaciones')?.last?.()?.json?.items || [];\nconst incoming = $input.first().json?.data || [];\nconst nextCursor = $input.first().json?.next_cursor || null;\nconst accumulated = items.concat(incoming);\n\nreturn [{\n  json: {\n    items: accumulated,\n    cursor: nextCursor,\n    has_more: !!nextCursor,\n    batch_id: $('Init Batch (idempotency)').first().json.batch_id,\n    window_start: $('Init Batch (idempotency)').first().json.window_start\n  }\n}];"
+      },
+      "id": "acumular-conversaciones",
+      "name": "Acumular Conversaciones",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 360]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "leftValue": "={{$json.has_more}}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-has-more",
+      "name": "¿Más páginas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [980, 360]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/contacts/active",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "status", "value": "active" },
+            { "name": "limit", "value": "1000" }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "retry": { "limit": 3, "waitBetween": 2000 }
+        }
+      },
+      "id": "get-contactos",
+      "name": "GET Contactos Activos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [540, 620],
+      "credentials": {
+        "httpHeaderAuth": { "id": "zolutium-api", "name": "Zolutium API" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// FIX 5: PII. Solo enviamos a Claude lo mínimo necesario: hash del contact_id,\n// canal, tags, texto. Nada de email/teléfono/nombre/documento.\nconst crypto = require('crypto');\nconst hashId = id => crypto.createHash('sha256').update(String(id) + ($env.PII_SALT || 'bac-loyalty')).digest('hex').slice(0, 12);\n\nconst conv = $('Acumular Conversaciones').first().json.items || [];\nconst contactos = $('GET Contactos Activos').first().json?.data || [];\nconst contactosPorId = new Map(contactos.map(c => [c.id, c]));\n\nconst dataset = conv.map(c => {\n  const contacto = contactosPorId.get(c.contact_id);\n  return {\n    id_hash: hashId(c.id),\n    fecha: c.created_at,\n    canal: c.channel,\n    texto: (c.messages || []).map(m => `[${m.role}] ${m.content}`).join('\\n').slice(0, 4000),\n    contacto_segmento: contacto?.segment || null,\n    contacto_tier: contacto?.tier || null,\n    tags: c.tags || [],\n    resuelta: c.resolved === true\n  };\n});\n\nconst stats = {\n  total_conversaciones: dataset.length,\n  total_contactos: contactos.length,\n  resueltas: dataset.filter(d => d.resuelta).length,\n  canales: [...new Set(dataset.map(d => d.canal))],\n  ventana_horas: 6,\n  pii_sanitized: true\n};\n\nreturn [{ json: {\n  dataset,\n  stats,\n  batch_id: $('Acumular Conversaciones').first().json.batch_id\n}}];"
+      },
+      "id": "preparar-datos",
+      "name": "Preparar Datos (PII safe)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 480]
+    },
+    {
+      "parameters": {
+        "modelId": "claude-opus-4-7",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Eres analista de KB del CRM BAC Loyalty. DEBES responder EXCLUSIVAMENTE con JSON válido sin markdown, sin backticks, sin texto adicional. Si no puedes analizar, devuelve {\"error\":\"<razón>\",\"confianza\":0}."
+            },
+            {
+              "role": "user",
+              "content": "=Analiza las conversaciones recientes y devuelve EXACTAMENTE este esquema JSON:\n{\n  \"patrones_detectados\": [\"...\"],\n  \"nuevas_faqs\": [{\"pregunta\":\"...\",\"respuesta_sugerida\":\"...\",\"evidencia_ids_hash\":[\"...\"]}],\n  \"brechas_kb\": [\"...\"],\n  \"acciones_recomendadas\": [\"...\"],\n  \"confianza\": 0.0\n}\n\nDATOS:\n{{ JSON.stringify($json.dataset) }}\n\nSTATS:\n{{ JSON.stringify($json.stats) }}"
+            }
+          ]
+        },
+        "options": {
+          "maxTokensToSample": 4096,
+          "temperature": 0.1
+        }
+      },
+      "id": "claude-analiza",
+      "name": "Claude Analiza Patrones",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [1420, 480],
+      "credentials": {
+        "anthropicApi": { "id": "anthropic-bac", "name": "Anthropic BAC" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// FIX 3: Validación robusta de la salida de Claude.\n// Extrae JSON aunque venga envuelto en markdown o con texto antes/después.\nconst raw = $input.first().json?.content?.[0]?.text\n         || $input.first().json?.text\n         || $input.first().json?.message?.content\n         || '';\n\nfunction extractJson(s) {\n  const fenced = s.match(/```(?:json)?\\s*([\\s\\S]*?)```/);\n  if (fenced) return fenced[1].trim();\n  const start = s.indexOf('{');\n  const end = s.lastIndexOf('}');\n  if (start >= 0 && end > start) return s.slice(start, end + 1);\n  return s;\n}\n\nlet analisis;\ntry {\n  analisis = JSON.parse(extractJson(raw));\n} catch (e) {\n  // No abortamos el workflow: marcamos como descarte y continuamos a la rama de error.\n  return [{\n    json: {\n      __invalid_json: true,\n      raw_excerpt: raw.slice(0, 500),\n      error: e.message,\n      batch_id: $('Preparar Datos (PII safe)').first().json.batch_id\n    }\n  }];\n}\n\nconst confianza = Number(analisis.confianza ?? 0);\nconst batchId = $('Preparar Datos (PII safe)').first().json.batch_id;\nconst timestamp = new Date().toISOString();\n\nreturn [{\n  json: {\n    batch_id: batchId,\n    timestamp,\n    confianza,\n    nuevas_faqs: analisis.nuevas_faqs ?? [],\n    patrones: analisis.patrones_detectados ?? [],\n    brechas: analisis.brechas_kb ?? [],\n    acciones: analisis.acciones_recomendadas ?? [],\n    descartar: confianza < Number($env.KB_CONFIDENCE_THRESHOLD || 0.6),\n    texto_plano: [\n      `# Analisis KB ${timestamp}`,\n      `Batch: ${batchId}  Confianza: ${confianza}`,\n      `## Patrones`, ...(analisis.patrones_detectados || []).map(p => `- ${p}`),\n      `## Nuevas FAQs`, ...(analisis.nuevas_faqs || []).map(f => `### ${f.pregunta}\\n${f.respuesta_sugerida}`),\n      `## Brechas`, ...(analisis.brechas_kb || []).map(b => `- ${b}`)\n    ].join('\\n')\n  }\n}];"
+      },
+      "id": "validar-formatear",
+      "name": "Validar + Formatear KB",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1640, 480]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "leftValue": "={{$json.__invalid_json || $json.descartar}}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-descartar",
+      "name": "¿Descartar batch?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1860, 480]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/kb/aggregate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Idempotency-Key", "value": "={{$json.batch_id}}-aggregate" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"batch_id\": \"{{$json.batch_id}}\",\n  \"faqs\": {{ JSON.stringify($json.nuevas_faqs) }},\n  \"patrones\": {{ JSON.stringify($json.patrones) }},\n  \"confianza\": {{$json.confianza}}\n}",
+        "options": {
+          "timeout": 60000,
+          "retry": { "limit": 3, "waitBetween": 5000 }
+        }
+      },
+      "id": "push-kb-zolutium",
+      "name": "Push KB Agregado",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2080, 320],
+      "credentials": {
+        "httpHeaderAuth": { "id": "zolutium-api", "name": "Zolutium API" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/kb/local/update",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Idempotency-Key", "value": "={{$json.batch_id}}-local" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"batch_id\": \"{{$json.batch_id}}\",\n  \"brechas\": {{ JSON.stringify($json.brechas) }},\n  \"acciones\": {{ JSON.stringify($json.acciones) }}\n}",
+        "options": {
+          "timeout": 60000,
+          "retry": { "limit": 3, "waitBetween": 5000 }
+        }
+      },
+      "id": "actualizar-kb-local",
+      "name": "Actualizar KB Local",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2300, 320],
+      "credentials": {
+        "httpHeaderAuth": { "id": "zolutium-api", "name": "Zolutium API" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.ZOLUTIUM_BASE_URL}}/kb/documents",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Idempotency-Key", "value": "={{$json.batch_id}}-doc" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"batch_id\": \"{{$json.batch_id}}\",\n  \"titulo\": \"Analisis KB {{$json.timestamp.slice(0,10)}} {{$json.timestamp.slice(11,16)}}\",\n  \"contenido\": {{ JSON.stringify($json.texto_plano) }},\n  \"tipo\": \"kb_analysis\",\n  \"metadata\": { \"confianza\": {{$json.confianza}}, \"ventana\": \"6h\" }\n}",
+        "options": {
+          "timeout": 60000,
+          "retry": { "limit": 3, "waitBetween": 5000 }
+        }
+      },
+      "id": "guardar-doc-zolutium",
+      "name": "Guardar Documento KB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2520, 320],
+      "credentials": {
+        "httpHeaderAuth": { "id": "zolutium-api", "name": "Zolutium API" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Rama de descarte: registrar para auditoría sin tocar la KB.\nconst j = $input.first().json;\nconsole.log('[KB-7] Batch descartado:', JSON.stringify({\n  batch_id: j.batch_id,\n  invalid_json: !!j.__invalid_json,\n  confianza: j.confianza,\n  error: j.error\n}));\nreturn [{ json: j }];"
+      },
+      "id": "log-descarte",
+      "name": "Log Descarte",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2080, 640]
+    }
+  ],
+  "connections": {
+    "Cada 6 horas": {
+      "main": [[{ "node": "Init Batch (idempotency)", "type": "main", "index": 0 }]]
+    },
+    "Init Batch (idempotency)": {
+      "main": [
+        [
+          { "node": "GET Conversaciones (paginado)", "type": "main", "index": 0 },
+          { "node": "GET Contactos Activos", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "GET Conversaciones (paginado)": {
+      "main": [[{ "node": "Acumular Conversaciones", "type": "main", "index": 0 }]]
+    },
+    "Acumular Conversaciones": {
+      "main": [[{ "node": "¿Más páginas?", "type": "main", "index": 0 }]]
+    },
+    "¿Más páginas?": {
+      "main": [
+        [{ "node": "GET Conversaciones (paginado)", "type": "main", "index": 0 }],
+        [{ "node": "Preparar Datos (PII safe)", "type": "main", "index": 0 }]
+      ]
+    },
+    "GET Contactos Activos": {
+      "main": [[{ "node": "Preparar Datos (PII safe)", "type": "main", "index": 0 }]]
+    },
+    "Preparar Datos (PII safe)": {
+      "main": [[{ "node": "Claude Analiza Patrones", "type": "main", "index": 0 }]]
+    },
+    "Claude Analiza Patrones": {
+      "main": [[{ "node": "Validar + Formatear KB", "type": "main", "index": 0 }]]
+    },
+    "Validar + Formatear KB": {
+      "main": [[{ "node": "¿Descartar batch?", "type": "main", "index": 0 }]]
+    },
+    "¿Descartar batch?": {
+      "main": [
+        [{ "node": "Log Descarte", "type": "main", "index": 0 }],
+        [{ "node": "Push KB Agregado", "type": "main", "index": 0 }]
+      ]
+    },
+    "Push KB Agregado": {
+      "main": [[{ "node": "Actualizar KB Local", "type": "main", "index": 0 }]]
+    },
+    "Actualizar KB Local": {
+      "main": [[{ "node": "Guardar Documento KB", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "bac-loyalty" },
+    { "name": "kb" },
+    { "name": "agente-7" },
+    { "name": "v2" }
+  ]
+}

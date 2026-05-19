@@ -1,69 +1,95 @@
 # Workflows n8n — CRM BAC Loyalty
 
-## Agente 7 — Actualizador de KB Inteligente
+Fuente de verdad versionada de los workflows del CRM. Editar aquí, importar a n8n cloud.
 
-Archivo: `agente-7-actualizador-kb-inteligente.json`
+## Conexión MCP con n8n cloud
 
-### Flujo
+- **URL del servidor**: `https://allannsolis94.app.n8n.cloud/mcp-server/http`
+- **Auth**: token de acceso (Settings → MCP a nivel de instancia → Detalles de conexión).
+- **Configuración**: ya escrita en `~/.claude/settings.json`. Token va en `~/.claude/.env` (no versionado).
+- **Bloqueador conocido**: el sandbox web de Claude Code rechaza este host (`host_not_allowed`). El MCP funciona desde Claude Code local.
+
+## Workflows
+
+### Agente 7 — Actualizador de KB Inteligente
+
+| Archivo | Estado |
+|---|---|
+| `agente-7-actualizador-kb-inteligente.json` | v1 — diseño original reconstruido desde captura |
+| `agente-7-actualizador-kb-inteligente.v2.json` | **v2 — con los 5 fixes aplicados (usar este)** |
+
+#### Flujo v2
+
 ```
 Cada 6 horas
-   ├── GET Conversaciones Recientes ──┐
-   └── GET Contactos Activos ─────────┤
-                                      ▼
-                          Preparar Datos Analisis
-                                      ▼
-                          Claude Analiza Patrones (Opus 4.7)
-                                      ▼
-                            Formatear para KB
-                                      ▼
-              ┌───────────────────────┼───────────────────────┐
-              ▼                       ▼                       ▼
-  Push KB Agregado a    Actualizar KB local    Preparar Texto KB
-       Zolutium                                       ▼
-                                          Guardar Análisis en Zolutium
+   └── Init Batch (idempotency key determinístico)
+         ├── GET Conversaciones (paginado) ──┐
+         │      └── Acumular → ¿Más páginas? ─loop─┐
+         │                                         ▼
+         └── GET Contactos Activos ──────► Preparar Datos (PII safe)
+                                                   ▼
+                                           Claude Opus 4.7 (system prompt JSON-only)
+                                                   ▼
+                                           Validar + Formatear KB
+                                                   ▼
+                                           ¿Descartar batch? (confianza < 0.6 o JSON inválido)
+                                              SÍ → Log Descarte
+                                              NO → Push KB → Actualizar Local → Guardar Doc
 ```
 
-### Credenciales requeridas en n8n
-| ID | Tipo | Uso |
+#### Cambios v1 → v2
+
+| # | Riesgo v1 | Fix v2 |
 |---|---|---|
-| `zolutium-api` | HTTP Header Auth | `Authorization: Bearer <token>` contra la API de Zolutium |
-| `anthropic-bac` | Anthropic API | Llamadas a Claude Opus 4.7 |
+| 1 | Sin paginación, truncado a 500 conv./6h | Loop `IF ¿Más páginas?` con cursor, sin límite arbitrario |
+| 2 | Sin deduplicación si cron corre 2 veces | `batch_id` determinístico (ventana de 6h) + header `Idempotency-Key` en cada POST |
+| 3 | Sin validación de JSON de Claude | Extracción robusta (fenced / first-brace), system prompt fuerza JSON, fallback no aborta el workflow |
+| 4 | 3 POST paralelos a Zolutium | Serializados en cadena con retry 3x |
+| 5 | PII en logs y prompts | `sha256(id+SALT)` antes de enviar a Claude; texto truncado a 4000 chars; sin email/teléfono/documento |
 
-### Variables de entorno requeridas
-| Variable | Ejemplo |
+#### Credenciales requeridas en n8n
+
+| ID | Tipo |
 |---|---|
-| `ZOLUTIUM_BASE_URL` | `https://services.zolutium.com/api/v1` |
+| `zolutium-api` | HTTP Header Auth (`Authorization: Bearer …`) |
+| `anthropic-bac` | Anthropic API |
 
-### Importar en n8n Cloud
-1. Abre tu workspace en `allannsolis94.app.n8n.cloud`.
-2. Menú lateral → **Workflows** → **Import from File**.
-3. Selecciona `agente-7-actualizador-kb-inteligente.json`.
-4. En cada nodo HTTP, asigna la credencial `Zolutium API`.
-5. En el nodo Claude, asigna la credencial `Anthropic BAC`.
-6. Configura la variable de entorno `ZOLUTIUM_BASE_URL` en **Settings → Variables**.
-7. Ejecuta manualmente con "Test workflow" antes de publicar.
+#### Variables de entorno
 
-### Validaciones recomendadas antes de activar
+Ver [`../.env.example`](../.env.example). Mínimas:
 
-- [ ] El endpoint `/conversations/recent?since_hours=6` devuelve `{ data: [...] }`.
+- `ZOLUTIUM_BASE_URL`
+- `KB_CONFIDENCE_THRESHOLD` (default 0.6)
+- `PII_SALT` (cadena aleatoria larga, mantener estable para que los hashes coincidan entre runs)
+
+#### Importar v2 en n8n cloud
+
+1. n8n cloud → **Workflows → Import from File** → `agente-7-actualizador-kb-inteligente.v2.json`.
+2. Asignar credenciales `zolutium-api` y `anthropic-bac` en cada nodo correspondiente.
+3. Variables: settings del workflow → agregar `ZOLUTIUM_BASE_URL`, `KB_CONFIDENCE_THRESHOLD`, `PII_SALT`.
+4. **Probar manualmente**: cambiar `limit` del GET Conversaciones a 5, ejecutar `Test workflow`, verificar que Validar + Formatear no entra en rama de error.
+5. Si todo OK, **archivar la v1** (no eliminarla — auditoría) y activar la v2.
+
+#### Auditoría rápida pre-activación
+
+- [ ] El endpoint `/conversations/recent?since=ISO&cursor=…` devuelve `{ data: [], next_cursor: null|string }`.
 - [ ] El endpoint `/contacts/active` devuelve `{ data: [...] }`.
-- [ ] El token de Zolutium tiene scope para `kb:write`.
-- [ ] El token de Anthropic apunta al workspace correcto.
-- [ ] El modelo `claude-opus-4-7` está habilitado en el workspace (si no, baja a `claude-sonnet-4-6`).
-- [ ] Probar con un dataset pequeño (modificar `limit` a 5) antes del primer batch real.
-- [ ] Confirmar que la respuesta JSON de Claude se parsea sin error (el nodo "Formatear para KB" lanza excepción si no).
-- [ ] Activar **Error Workflow** apuntando a un workflow de notificación (Slack/Email).
+- [ ] `claude-opus-4-7` habilitado en el workspace Anthropic (fallback: `claude-sonnet-4-6`).
+- [ ] `PII_SALT` definido y estable (no rotar entre ejecuciones).
+- [ ] `Idempotency-Key` honrado por la API de Zolutium en `/kb/aggregate`, `/kb/local/update`, `/kb/documents`.
 
-### Riesgos detectados en el diseño actual
+## Workflows pendientes de versionar
 
-1. **Sin manejo de paginación**: si hay >500 conversaciones en 6h, se truncan.
-2. **Sin deduplicación**: si el cron corre dos veces (manual + scheduled), se duplican entradas KB.
-3. **Sin validación de schema en respuesta de Claude**: si Claude devuelve markdown en lugar de JSON puro, el workflow falla.
-4. **Sin rate limiting**: la rama final ejecuta 3 POST en paralelo a Zolutium; si la API tiene límite estricto, conviene serializar.
-5. **PII en logs**: el dataset incluye contactos completos; revisar que n8n no persista ejecuciones con PII más allá del retention permitido por GDPR.
+Listado obtenido de la consola n8n cloud (workspace `allannsolis94`):
 
-### Próximos pasos sugeridos
+- [ ] Agente 8 — Gestor de inventario CRM
+- [ ] Agente 9 — Sincronización CRM Bidireccional
+- [ ] Agente 10 — Informe Ejecutivo Diario
+- [ ] Automatizador principal de tuberías — Glass Soler
+- [ ] Cerebro Marketing IA — Glass Soler / Esmeralda
+- [ ] Informe de Inteligencia de Marketing — Glass Soler / Esmeralda
+- [ ] Optimizador de Campañas con IA — Glass Soler / Esmeralda
+- [ ] Creador y estratega de campañas — Glass Soler / Esmeralda
+- [ ] Sincronización del rendimiento
 
-- Añadir un nodo **IF** que descarte el batch si `confianza < 0.6`.
-- Añadir un workflow gemelo de **rollback** que pueda revertir un `batch_id`.
-- Versionar el JSON aquí en cada cambio (este repo es la fuente de verdad).
+Para versionar cada uno: descargar JSON desde n8n cloud (botón ⋯ → Download) o usar MCP cuando esté operativo.
