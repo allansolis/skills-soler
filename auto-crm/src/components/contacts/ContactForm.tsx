@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useBusiness } from "@/context/BusinessContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -43,6 +44,7 @@ interface ContactFormProps {
 
 export function ContactForm({ open, onClose, initialData }: ContactFormProps) {
   const router = useRouter();
+  const { business } = useBusiness();
   const isEditing = !!initialData?.id;
 
   const {
@@ -75,7 +77,8 @@ export function ContactForm({ open, onClose, initialData }: ContactFormProps) {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        // Incluir business actual para que el record NO quede huerfano
+        body: JSON.stringify({ ...data, business }),
       });
 
       if (!res.ok) throw new Error("Error al guardar");

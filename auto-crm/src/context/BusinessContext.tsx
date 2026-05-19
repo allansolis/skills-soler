@@ -1,56 +1,16 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  BUSINESS_CONFIGS,
+  ALL_BUSINESSES,
+  DEFAULT_BUSINESS,
+  type BusinessId,
+  type BusinessConfig,
+} from "@/lib/businessConfig";
 
-export type BusinessId =
-  | "glass_soler"
-  | "esmeraldas_soler"
-  | "autos_soler"
-  | "inversiones_soler";
-
-export interface BusinessConfig {
-  id: BusinessId;
-  name: string;
-  color: string;
-  emoji: string;
-  currency: "USD" | "CRC";
-  description: string;
-}
-
-const BUSINESS_CONFIGS: Record<BusinessId, BusinessConfig> = {
-  glass_soler: {
-    id: "glass_soler",
-    name: "Glass Soler",
-    color: "#0EA5E9",
-    emoji: "🛡️",
-    currency: "USD",
-    description: "Polarizado de seguridad",
-  },
-  esmeraldas_soler: {
-    id: "esmeraldas_soler",
-    name: "Esmeraldas Soler",
-    color: "#10B981",
-    emoji: "💎",
-    currency: "CRC",
-    description: "Joyería con esmeraldas",
-  },
-  autos_soler: {
-    id: "autos_soler",
-    name: "Autos Soler",
-    color: "#F59E0B",
-    emoji: "🚗",
-    currency: "CRC",
-    description: "Compra-venta de vehículos",
-  },
-  inversiones_soler: {
-    id: "inversiones_soler",
-    name: "Inversiones Soler",
-    color: "#8B5CF6",
-    emoji: "🏘️",
-    currency: "USD",
-    description: "Asesoría inmobiliaria",
-  },
-};
+// Re-export para compatibilidad con imports existentes
+export type { BusinessId, BusinessConfig };
 
 interface BusinessContextValue {
   business: BusinessId;
@@ -61,8 +21,14 @@ interface BusinessContextValue {
 
 const BusinessContext = createContext<BusinessContextValue | null>(null);
 
-export function BusinessProvider({ children }: { children: ReactNode }) {
-  const [business, setBusiness] = useState<BusinessId>("glass_soler");
+export function BusinessProvider({
+  children,
+  initialBusiness,
+}: {
+  children: ReactNode;
+  initialBusiness?: BusinessId;
+}) {
+  const [business, setBusiness] = useState<BusinessId>(initialBusiness ?? DEFAULT_BUSINESS);
   const businessConfig = BUSINESS_CONFIGS[business];
 
   return (
@@ -71,7 +37,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
         business,
         businessConfig,
         setBusiness,
-        allBusinesses: Object.values(BUSINESS_CONFIGS),
+        allBusinesses: ALL_BUSINESSES,
       }}
     >
       {children}
@@ -82,12 +48,11 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
 export function useBusiness() {
   const ctx = useContext(BusinessContext);
   if (!ctx) {
-    // Fallback for SSR / unwrapped usage — return default Glass
     return {
-      business: "glass_soler" as BusinessId,
-      businessConfig: BUSINESS_CONFIGS.glass_soler,
+      business: DEFAULT_BUSINESS,
+      businessConfig: BUSINESS_CONFIGS[DEFAULT_BUSINESS],
       setBusiness: () => {},
-      allBusinesses: Object.values(BUSINESS_CONFIGS),
+      allBusinesses: ALL_BUSINESSES,
     };
   }
   return ctx;

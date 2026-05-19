@@ -1,16 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { db } from "@/db";
 import { pipelineStages, deals, contacts } from "@/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, and, SQL } from "drizzle-orm";
+import { DEFAULT_BUSINESS, resolveBusinessId } from "@/lib/businessConfig";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const businessParam = searchParams.get("business");
+  const cookieStore = await cookies();
+  const businessRaw =
+    businessParam || cookieStore.get("business")?.value || DEFAULT_BUSINESS;
+  const business = businessRaw === "all" ? "all" : resolveBusinessId(businessRaw);
+
   const stages = db
     .select()
     .from(pipelineStages)
     .orderBy(asc(pipelineStages.order))
     .all();
 
-  const allDeals = db
+  const filters: SQL[] = [];
+  if (business !== "all") {
+    filters.push(eq(deals.business, business));
+  }
+
+  let dealsQuery = db
     .select({
       id: deals.id,
       title: deals.title,
@@ -20,14 +34,20 @@ export async function GET() {
       expectedClose: deals.expectedClose,
       probability: deals.probability,
       notes: deals.notes,
+      business: deals.business,
       createdAt: deals.createdAt,
       updatedAt: deals.updatedAt,
       contactName: contacts.name,
       contactTemperature: contacts.temperature,
     })
     .from(deals)
-    .leftJoin(contacts, eq(deals.contactId, contacts.id))
-    .all();
+    .leftJoin(contacts, eq(deals.contactId, contacts.id));
+
+  if (filters.length > 0) {
+    dealsQuery = dealsQuery.where(and(...filters)!) as typeof dealsQuery;
+  }
+
+  const allDeals = dealsQuery.all();
 
   const pipeline = stages.map((stage) => ({
     ...stage,

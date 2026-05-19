@@ -12,6 +12,8 @@ export const contacts = sqliteTable("contacts", {
   temperature: text("temperature").notNull().default("cold"),
   score: integer("score").notNull().default(0),
   notes: text("notes"),
+  // Multi-business filter
+  business: text("business"),
   // Zolutium sync
   zolutiumId: text("zolutium_id"),
   // Meta / Social fields
@@ -59,6 +61,7 @@ export const deals = sqliteTable("deals", {
   expectedClose: integer("expected_close", { mode: "timestamp" }),
   probability: integer("probability").notNull().default(0),
   notes: text("notes"),
+  business: text("business"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -79,6 +82,7 @@ export const activities = sqliteTable("activities", {
   dealId: text("deal_id").references(() => deals.id),
   scheduledAt: integer("scheduled_at", { mode: "timestamp" }),
   completedAt: integer("completed_at", { mode: "timestamp" }),
+  business: text("business"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -103,6 +107,7 @@ export const conversations = sqliteTable("conversations", {
   status: text("status").notNull().default("delivered"), // sent | delivered | read | failed
   senderName: text("sender_name"),
   senderPhone: text("sender_phone"),
+  business: text("business"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -194,6 +199,26 @@ export const executiveReports = sqliteTable("executive_reports", {
   recommendations: text("recommendations"), // JSON
   alerts: text("alerts"), // JSON
   aiSummary: text("ai_summary"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+// Meta assets (FB posts, photos, videos, albums, IG media)
+export const metaAssets = sqliteTable("meta_assets", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  externalId: text("external_id").notNull(),
+  business: text("business").notNull(),
+  assetType: text("asset_type").notNull(), // video | photo | album | post | ig_media
+  platform: text("platform").notNull().default("facebook"), // facebook | instagram
+  title: text("title"),
+  description: text("description"),
+  permalink: text("permalink"),
+  thumbnail: text("thumbnail"),
+  externalCreatedAt: integer("external_created_at"),
+  raw: text("raw"), // JSON
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

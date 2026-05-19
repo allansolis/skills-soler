@@ -1,9 +1,76 @@
+# =============================================================
+# .gitignore — skills-soler / auto-crm / soler-elena-system
+# =============================================================
 
-# Sesion 18 may 2026
-*.db-shm
-*.db-wal
+# Node / Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# Python virtual envs
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs
+*.log
 soler-elena-system/scripts/watch.log
 soler-elena-system/scripts/tunnel.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables & SECRETS
+# CRITICAL: never commit any .env file with real values
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+**/.env
+**/.env.local
+*.env.private
+**/tokens.txt
+**/page_tokens/
+**/page_tokens.json
+**/credentials.json
+
+# But DO commit .env.example
+!.env.example
+!**/.env.example
+
+# Databases / runtime data
+*.db
+*.db-shm
+*.db-wal
+auto-crm/data/crm.db
 auto-crm/data/leads-statuses.json
 soler-elena-system/bots/data/
 
+# Meta audit raw data (sensitive)
+auto-crm/data/meta-audit/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Temp / scratch
+*.tmp
+*.temp
+.cache/
+tmp/
+
+# OS
+Desktop.ini
+$RECYCLE.BIN/

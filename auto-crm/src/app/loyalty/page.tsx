@@ -7,28 +7,50 @@ import {
   loyaltyTiers,
   loyaltyActions,
 } from "@/db/schema";
-import { asc, desc } from "drizzle-orm";
+import { asc, desc, eq, inArray } from "drizzle-orm";
 import { LoyaltyDashboard } from "@/components/loyalty/LoyaltyDashboard";
+import { getBusinessFromCookies, BUSINESS_LABELS } from "@/lib/getBusinessFromCookies";
 
 export const dynamic = "force-dynamic";
 
-export default function LoyaltyPage() {
+export default async function LoyaltyPage() {
+  const business = await getBusinessFromCookies();
+  const bizLabel = BUSINESS_LABELS[business];
+
   const programs = db.select().from(loyaltyPrograms).all();
   const tiers = db
     .select()
     .from(loyaltyTiers)
     .orderBy(asc(loyaltyTiers.order))
     .all();
-  const actions = db
+
+  // Filtrar contactos por business
+  const allContacts = db
     .select()
-    .from(loyaltyActions)
-    .orderBy(desc(loyaltyActions.createdAt))
-    .limit(20)
+    .from(contacts)
+    .where(eq(contacts.business, business))
     .all();
 
-  const allContacts = db.select().from(contacts).all();
-  const allDeals = db.select().from(deals).all();
+  const allDeals = db
+    .select()
+    .from(deals)
+    .where(eq(deals.business, business))
+    .all();
+
   const stages = db.select().from(pipelineStages).all();
+
+  // Acciones de lealtad solo de contactos del business activo
+  const contactIds = allContacts.map((c) => c.id);
+  const actions =
+    contactIds.length > 0
+      ? db
+          .select()
+          .from(loyaltyActions)
+          .where(inArray(loyaltyActions.contactId, contactIds))
+          .orderBy(desc(loyaltyActions.createdAt))
+          .limit(20)
+          .all()
+      : [];
 
   // Build eligible contacts list
   const eligibleContacts = allContacts
@@ -94,9 +116,14 @@ export default function LoyaltyPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Programa de Lealtad</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          Programa de Lealtad{" "}
+          <span style={{ color: bizLabel.color }}>
+            {bizLabel.emoji} {bizLabel.name}
+          </span>
+        </h1>
         <p className="text-sm text-muted-foreground">
-          {programs[0]?.name || "Programa Esmeralda SOLER"} — Fideliza clientes y cierra ventas
+          {programs[0]?.name || "Programa Esmeralda SOLER"} — solo clientes de esta marca ({allContacts.length} contactos)
         </p>
       </div>
 

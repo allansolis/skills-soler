@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useBusiness } from "@/context/BusinessContext";
 import {
   LineChart,
   Line,
@@ -473,6 +474,7 @@ function BusinessTableWidget({ payload }: { payload: TablePayload | null }) {
 // ---- Main page -------------------------------------------------------------
 
 export default function AnalyticsPage() {
+  const { business, businessConfig } = useBusiness();
   const [trend, setTrend] = useState<TrendPayload | null>(null);
   const [funnel, setFunnel] = useState<FunnelPayload | null>(null);
   const [signals, setSignals] = useState<SignalsPayload | null>(null);
@@ -480,6 +482,42 @@ export default function AnalyticsPage() {
   const [table, setTable] = useState<TablePayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [showAll, setShowAll] = useState(false);
+
+  // Filtrar payloads en cliente para mostrar solo la marca activa (a menos que showAll este on)
+  const filteredTrend = useMemo<TrendPayload | null>(() => {
+    if (!trend || showAll) return trend;
+    return {
+      ...trend,
+      series: trend.series.filter((s) => s.key === business),
+    };
+  }, [trend, showAll, business]);
+
+  const filteredTable = useMemo<TablePayload | null>(() => {
+    if (!table || showAll) return table;
+    const rows = table.rows.filter((r) => r.business === business);
+    return {
+      ...table,
+      rows,
+      footer: {
+        ...table.footer,
+        name: businessConfig.name,
+        total: rows.reduce((s, r) => s + r.total, 0),
+        hot: rows.reduce((s, r) => s + r.hot, 0),
+        handoffs: rows.reduce((s, r) => s + r.handoffs, 0),
+        avg_score:
+          rows.length > 0
+            ? Math.round(rows.reduce((s, r) => s + r.avg_score, 0) / rows.length)
+            : 0,
+        conv_rate:
+          rows.length > 0
+            ? Math.round(
+                (rows.reduce((s, r) => s + r.conv_rate, 0) / rows.length) * 100
+              ) / 100
+            : 0,
+      },
+    };
+  }, [table, showAll, business, businessConfig]);
 
   async function refreshAll() {
     setLoading(true);
@@ -512,13 +550,29 @@ export default function AnalyticsPage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <BarChart3 className="h-6 w-6 text-primary" />
-            Analytics
+            Analytics{" "}
+            {!showAll && (
+              <span style={{ color: businessConfig.color }}>
+                {businessConfig.emoji} {businessConfig.name}
+              </span>
+            )}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Visión agregada de las 4 Elenas. Auto-refresh cada 60s.
+            {showAll
+              ? "Comparativa agregada de las 4 marcas. Auto-refresh cada 60s."
+              : `Métricas de la Elena de esta marca. Auto-refresh cada 60s.`}
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 text-xs select-none cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showAll}
+              onChange={(e) => setShowAll(e.target.checked)}
+              className="h-3.5 w-3.5"
+            />
+            <span className="text-muted-foreground">Comparar 4 marcas</span>
+          </label>
           {lastUpdate ? (
             <span className="text-xs text-muted-foreground">
               Actualizado{" "}
@@ -546,7 +600,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Trend - full width top */}
         <div className="lg:col-span-12">
-          <HotLeadsTrendWidget payload={trend} />
+          <HotLeadsTrendWidget payload={filteredTrend} />
         </div>
 
         {/* Funnel + Signals side by side */}
@@ -564,7 +618,7 @@ export default function AnalyticsPage() {
 
         {/* Comparison table */}
         <div className="lg:col-span-12">
-          <BusinessTableWidget payload={table} />
+          <BusinessTableWidget payload={filteredTable} />
         </div>
       </div>
     </div>

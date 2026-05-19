@@ -34,20 +34,30 @@ export const ACTIVITY_TYPE_CONFIG: Record<
   follow_up: { label: "Seguimiento", icon: "Clock" },
 };
 
-export function formatCurrency(cents: number): string {
-  return new Intl.NumberFormat("es-CR", {
+/**
+ * Formatea moneda. Acepta currency explicito para multi-marca:
+ *   - Glass Soler + Inversiones Soler => USD
+ *   - Esmeraldas Soler + Autos Soler => CRC
+ *
+ * Si no se pasa currency, default es CRC (legacy).
+ */
+export function formatCurrency(cents: number, currency: "CRC" | "USD" = "CRC"): string {
+  const locale = currency === "USD" ? "en-US" : "es-CR";
+  const value = cents / 100;
+  return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: "CRC",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(cents / 100);
+    currency,
+    minimumFractionDigits: currency === "USD" ? 2 : 0,
+    maximumFractionDigits: currency === "USD" ? 2 : 0,
+  }).format(value);
 }
 
-export function formatCompactCurrency(cents: number): string {
+export function formatCompactCurrency(cents: number, currency: "CRC" | "USD" = "CRC"): string {
   const value = cents / 100;
-  if (value >= 1_000_000) return `₡${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `₡${(value / 1_000).toFixed(0)}K`;
-  return `₡${value.toFixed(0)}`;
+  const symbol = currency === "USD" ? "$" : "₡";
+  if (value >= 1_000_000) return `${symbol}${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `${symbol}${(value / 1_000).toFixed(0)}K`;
+  return `${symbol}${currency === "USD" ? value.toFixed(2) : value.toFixed(0)}`;
 }
 
 export function formatPercent(value: number): string {

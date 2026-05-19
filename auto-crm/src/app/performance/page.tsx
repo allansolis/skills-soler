@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useBusiness } from "@/context/BusinessContext";
 import {
   Gauge,
   Activity,
@@ -647,12 +648,64 @@ function Th({
 // ---- Main page -------------------------------------------------------------
 
 export default function PerformancePage() {
+  const { business, businessConfig } = useBusiness();
   const [health, setHealth] = useState<HealthPayload | null>(null);
   const [volume, setVolume] = useState<VolumePayload | null>(null);
   const [cost, setCost] = useState<CostPayload | null>(null);
   const [resp, setResp] = useState<ResponsePayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [showAll, setShowAll] = useState(false);
+
+  // Filtrar payloads en cliente para mostrar solo la marca activa
+  const fHealth = useMemo<HealthPayload | null>(() => {
+    if (!health || showAll) return health;
+    return { ...health, bots: health.bots.filter((b) => b.business === business) };
+  }, [health, showAll, business]);
+
+  const fVolume = useMemo<VolumePayload | null>(() => {
+    if (!volume || showAll) return volume;
+    return { ...volume, series: volume.series.filter((s) => s.key === business) };
+  }, [volume, showAll, business]);
+
+  const fCost = useMemo<CostPayload | null>(() => {
+    if (!cost || showAll) return cost;
+    const breakdown = cost.breakdown.filter((b) => b.business === business);
+    const totals = breakdown.reduce(
+      (acc, b) => ({
+        message_count: acc.message_count + b.message_count,
+        user_messages: acc.user_messages + b.user_messages,
+        assistant_messages: acc.assistant_messages + b.assistant_messages,
+        input_tokens: acc.input_tokens + b.input_tokens,
+        output_tokens: acc.output_tokens + b.output_tokens,
+        with_router_usd: acc.with_router_usd + b.with_router_usd,
+        without_router_usd: acc.without_router_usd + b.without_router_usd,
+        savings_usd: acc.savings_usd + b.savings_usd,
+        savings_pct: 0,
+      }),
+      {
+        message_count: 0,
+        user_messages: 0,
+        assistant_messages: 0,
+        input_tokens: 0,
+        output_tokens: 0,
+        with_router_usd: 0,
+        without_router_usd: 0,
+        savings_usd: 0,
+        savings_pct: 0,
+      }
+    );
+    totals.savings_pct =
+      totals.without_router_usd > 0
+        ? (totals.savings_usd / totals.without_router_usd) * 100
+        : 0;
+    return { ...cost, breakdown, totals };
+  }, [cost, showAll, business]);
+
+  const fResp = useMemo<ResponsePayload | null>(() => {
+    if (!resp || showAll) return resp;
+    return { ...resp, rows: resp.rows.filter((r) => r.business === business) };
+  }, [resp, showAll, business]);
 
   async function refreshAll() {
     setLoading(true);
@@ -691,13 +744,29 @@ export default function PerformancePage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Gauge className="h-6 w-6 text-primary" />
-            Performance
+            Performance{" "}
+            {!showAll && (
+              <span style={{ color: businessConfig.color }}>
+                {businessConfig.emoji} {businessConfig.name}
+              </span>
+            )}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Salud, volumen, costo y tiempo de respuesta del ecosistema de bots.
+            {showAll
+              ? "Salud, volumen, costo y respuesta de los 4 bots."
+              : "Salud, volumen, costo y respuesta del bot de esta marca."}
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 text-xs select-none cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showAll}
+              onChange={(e) => setShowAll(e.target.checked)}
+              className="h-3.5 w-3.5"
+            />
+            <span className="text-muted-foreground">Comparar 4 marcas</span>
+          </label>
           {lastUpdate ? (
             <span className="text-xs text-muted-foreground">
               Actualizado{" "}
@@ -721,10 +790,10 @@ export default function PerformancePage() {
         </div>
       </div>
 
-      <HealthSection data={health} />
-      <VolumeSection data={volume} />
-      <CostSection data={cost} />
-      <ResponseSection data={resp} />
+      <HealthSection data={fHealth} />
+      <VolumeSection data={fVolume} />
+      <CostSection data={fCost} />
+      <ResponseSection data={fResp} />
     </div>
   );
 }

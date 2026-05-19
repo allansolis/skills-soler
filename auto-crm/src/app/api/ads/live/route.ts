@@ -12,10 +12,40 @@ const ACCOUNTS: Record<string, { id: string; currency: string; label: string }> 
     currency: "USD",
     label: "Glass Soler",
   },
+  glass_soler: {
+    id: process.env.META_ADS_ACCOUNT_GLASS || "act_1101364862188478",
+    currency: "USD",
+    label: "Glass Soler",
+  },
   esmeraldas: {
     id: process.env.META_ADS_ACCOUNT_ESMERALDAS || "act_1868510380157902",
     currency: "CRC",
     label: "Esmeraldas Soler",
+  },
+  esmeraldas_soler: {
+    id: process.env.META_ADS_ACCOUNT_ESMERALDAS || "act_1868510380157902",
+    currency: "CRC",
+    label: "Esmeraldas Soler",
+  },
+  autos: {
+    id: process.env.META_ADS_ACCOUNT_AUTOS || "act_2385776465260628",
+    currency: "CRC",
+    label: "Autos Soler",
+  },
+  autos_soler: {
+    id: process.env.META_ADS_ACCOUNT_AUTOS || "act_2385776465260628",
+    currency: "CRC",
+    label: "Autos Soler",
+  },
+  inversiones: {
+    id: process.env.META_ADS_ACCOUNT_INVERSIONES || "",
+    currency: "USD",
+    label: "Inversiones Soler",
+  },
+  inversiones_soler: {
+    id: process.env.META_ADS_ACCOUNT_INVERSIONES || "",
+    currency: "USD",
+    label: "Inversiones Soler",
   },
 };
 
@@ -131,8 +161,20 @@ export async function GET(request: NextRequest) {
 
   if (!account) {
     return NextResponse.json(
-      { error: `Unknown business: ${businessParam}. Use glass or esmeraldas.` },
+      {
+        error: `Unknown business: ${businessParam}. Use glass_soler, esmeraldas_soler, autos_soler o inversiones_soler.`,
+      },
       { status: 400 }
+    );
+  }
+
+  if (!account.id) {
+    return NextResponse.json(
+      {
+        error: `Cuenta publicitaria no configurada para ${account.label}. Falta META_ADS_ACCOUNT_* en .env`,
+        account: account.label,
+      },
+      { status: 503 }
     );
   }
 

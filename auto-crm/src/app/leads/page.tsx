@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useBusiness, BusinessId } from "@/context/BusinessContext";
+import { BUSINESS_CONFIGS } from "@/lib/businessConfig";
 import { Flame, Users, TrendingUp, AlertCircle } from "lucide-react";
 
 interface Lead {
@@ -29,17 +30,16 @@ interface BusinessStats {
   avg_messages: number;
 }
 
-const BUSINESS_LABELS: Record<string, string> = {
-  glass_soler: "🛡️ Glass Soler",
-  esmeraldas_soler: "💎 Esmeraldas",
-  autos_soler: "🚗 Autos Soler",
-  inversiones_soler: "🏘️ Inversiones",
-};
+// Derivar labels desde el config canonico para evitar drift
+const BUSINESS_LABELS: Record<string, string> = Object.fromEntries(
+  Object.values(BUSINESS_CONFIGS).map((c) => [c.id, `${c.emoji} ${c.name}`])
+);
 
 export default function LeadsPage() {
-  const { allBusinesses } = useBusiness();
+  const { allBusinesses, business: currentBusiness, businessConfig } = useBusiness();
   const [view, setView] = useState<"hot" | "handoffs">("hot");
-  const [businessFilter, setBusinessFilter] = useState<BusinessId | "all">("all");
+  // Por defecto filtrar al business activo. El usuario puede cambiar a "all".
+  const [businessFilter, setBusinessFilter] = useState<BusinessId | "all">(currentBusiness);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [stats, setStats] = useState<Record<string, BusinessStats>>({});
   const [loading, setLoading] = useState(false);
@@ -81,10 +81,13 @@ export default function LeadsPage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Flame className="h-6 w-6 text-orange-500" />
-            Hot Leads
+            Hot Leads{" "}
+            <span style={{ color: businessConfig.color }}>
+              {businessConfig.emoji} {businessConfig.name}
+            </span>
           </h1>
           <p className="text-sm text-muted-foreground">
-            Leads cualificados por las 4 Elenas. Auto-refresh cada 30s.
+            Leads cualificados por la Elena de esta marca. Auto-refresh cada 30s.
           </p>
         </div>
         <button

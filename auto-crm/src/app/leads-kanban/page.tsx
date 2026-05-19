@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useBusiness, BusinessId } from "@/context/BusinessContext";
+import { BUSINESS_CONFIGS } from "@/lib/businessConfig";
 import {
   Kanban as KanbanIcon,
   RefreshCw,
@@ -137,12 +138,10 @@ const COLUMNS: ColumnDef[] = [
   },
 ];
 
-const BUSINESS_EMOJI: Record<string, string> = {
-  glass_soler: "🛡️",
-  esmeraldas_soler: "💎",
-  autos_soler: "🚗",
-  inversiones_soler: "🏘️",
-};
+// Derivar desde el config canonico
+const BUSINESS_EMOJI: Record<string, string> = Object.fromEntries(
+  Object.values(BUSINESS_CONFIGS).map((c) => [c.id, c.emoji])
+);
 
 const REFRESH_MS = 60_000;
 
@@ -188,8 +187,9 @@ function timeAgo(iso?: string): string {
 // ---------- Page ----------
 
 export default function LeadsKanbanPage() {
-  const { allBusinesses } = useBusiness();
-  const [businessFilter, setBusinessFilter] = useState<BusinessId | "all">("all");
+  const { allBusinesses, business: currentBusiness, businessConfig } = useBusiness();
+  // Por defecto filtrar al business activo. El usuario puede cambiar a "all".
+  const [businessFilter, setBusinessFilter] = useState<BusinessId | "all">(currentBusiness);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [statuses, setStatuses] = useState<Record<string, LeadStatusEntry>>({});
   const [loading, setLoading] = useState(false);
@@ -316,10 +316,13 @@ export default function LeadsKanbanPage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <KanbanIcon className="h-6 w-6 text-orange-500" />
-            Kanban Leads
+            Kanban Leads{" "}
+            <span style={{ color: businessConfig.color }}>
+              {businessConfig.emoji} {businessConfig.name}
+            </span>
           </h1>
           <p className="text-sm text-muted-foreground">
-            Pipeline visual de leads del bot Elena. Columnas 1-4 automaticas por score, 5-7 manuales.
+            Pipeline visual de leads de esta marca. Columnas 1-4 automaticas por score, 5-7 manuales.
           </p>
         </div>
         <div className="flex items-center gap-2">

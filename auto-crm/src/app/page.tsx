@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { contacts, deals, activities, pipelineStages, conversations } from "@/db/schema";
-import { eq, asc, desc } from "drizzle-orm";
+import { eq, asc, desc, and } from "drizzle-orm";
+import { getBusinessFromCookies, BUSINESS_LABELS } from "@/lib/getBusinessFromCookies";
 import { KPICards } from "@/components/dashboard/KPICards";
 import { PipelineChart } from "@/components/dashboard/PipelineChart";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
@@ -21,9 +22,12 @@ function getMonthKey(date: Date | number): string {
   return `${months[d.getMonth()]} ${d.getFullYear().toString().slice(-2)}`;
 }
 
-export default function DashboardPage() {
-  const allContacts = db.select().from(contacts).all();
-  const allDeals = db.select().from(deals).all();
+export default async function DashboardPage() {
+  const business = await getBusinessFromCookies();
+  const bizLabel = BUSINESS_LABELS[business];
+
+  const allContacts = db.select().from(contacts).where(eq(contacts.business, business)).all();
+  const allDeals = db.select().from(deals).where(eq(deals.business, business)).all();
   const stages = db
     .select()
     .from(pipelineStages)
@@ -143,9 +147,13 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Dashboard <span style={{ color: bizLabel.color }}>
+              {bizLabel.emoji} {bizLabel.name}
+            </span>
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Centro de control — Esmeraldas SOLER
+            {allContacts.length} contactos · {allDeals.length} deals · solo de esta marca
           </p>
         </div>
         <div className="text-right hidden sm:block">
@@ -166,7 +174,7 @@ export default function DashboardPage() {
       {isFirstRun && (
         <div className="rounded-xl border border-primary/20 bg-primary/5 p-6">
           <h2 className="text-lg font-semibold mb-2">
-            Bienvenido a Auto-CRM
+            Bienvenido a CRM SOLER
           </h2>
           <p className="text-sm text-muted-foreground mb-4">
             Tu CRM esta listo. Aqui tienes como comenzar:

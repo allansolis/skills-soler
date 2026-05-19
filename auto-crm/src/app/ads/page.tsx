@@ -92,14 +92,12 @@ export default function AdsPage() {
   const [error, setError] = useState<string | null>(null);
   const [fetchedLabel, setFetchedLabel] = useState<string>("—");
 
-  // map CRM business ID to API business param
-  const businessKey = business === "glass_soler" ? "glass" : "esmeraldas";
-
+  // El API ya acepta los 4 IDs (glass_soler, esmeraldas_soler, autos_soler, inversiones_soler)
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/ads/live?business=${businessKey}`);
+      const res = await fetch(`/api/ads/live?business=${business}`);
       const payload = (await res.json()) as AdsLiveResponse;
       if (!res.ok || payload.error) {
         setError(payload.error || `HTTP ${res.status}`);
@@ -113,7 +111,7 @@ export default function AdsPage() {
     } finally {
       setLoading(false);
     }
-  }, [businessKey]);
+  }, [business]);
 
   useEffect(() => {
     void load();

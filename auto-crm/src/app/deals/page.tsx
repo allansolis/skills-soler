@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useBusiness } from "@/context/BusinessContext";
 import {
   Table,
   TableBody,
@@ -31,26 +32,32 @@ interface DealRow {
 
 export default function DealsPage() {
   const router = useRouter();
+  const { business, businessConfig } = useBusiness();
   const [deals, setDeals] = useState<DealRow[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/deals")
+    fetch(`/api/deals?business=${business}`)
       .then((res) => res.json())
       .then((data) => {
         setDeals(data);
         setLoading(false);
       });
-  }, [showForm]);
+  }, [showForm, business]);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Deals</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Deals{" "}
+            <span style={{ color: businessConfig.color }}>
+              {businessConfig.emoji} {businessConfig.name}
+            </span>
+          </h1>
           <p className="text-muted-foreground">
-            Oportunidades de venta activas
+            {deals.length} oportunidades · solo de esta marca
           </p>
         </div>
         <div className="flex gap-2">

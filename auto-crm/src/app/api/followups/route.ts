@@ -1,9 +1,26 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { db } from "@/db";
 import { activities, contacts } from "@/db/schema";
-import { eq, isNull, asc } from "drizzle-orm";
+import { eq, isNull, asc, and, or } from "drizzle-orm";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const businessParam = searchParams.get("business");
+  const cookieStore = await cookies();
+  const business = businessParam || cookieStore.get("business")?.value || "glass_soler";
+
+  const filters: any[] = [isNull(activities.completedAt)];
+
+  if (business && business !== "all") {
+    filters.push(
+      or(
+        eq(activities.business, business),
+        and(isNull(activities.business), eq(contacts.business, business))
+      )!
+    );
+  }
+
   const pendingFollowups = db
     .select({
       id: activities.id,
@@ -19,7 +36,7 @@ export async function GET() {
     })
     .from(activities)
     .leftJoin(contacts, eq(activities.contactId, contacts.id))
-    .where(isNull(activities.completedAt))
+    .where(and(...filters))
     .orderBy(asc(activities.scheduledAt))
     .all();
 

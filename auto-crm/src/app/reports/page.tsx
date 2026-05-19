@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useBusiness } from "@/context/BusinessContext";
 import { ReportKPIs } from "@/components/reports/ReportKPIs";
 import { ReportTable } from "@/components/reports/ReportTable";
 import { ReportDetail } from "@/components/reports/ReportDetail";
@@ -76,6 +77,7 @@ interface Retrospective {
 type ActiveTab = "reportes" | "retrospectiva";
 
 export default function ReportsPage() {
+  const { businessConfig } = useBusiness();
   const [reports, setReports] = useState<Report[]>([]);
   const [retro, setRetro] = useState<Retrospective | null>(null);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
@@ -149,10 +151,13 @@ export default function ReportsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             <FileBarChart className="h-6 w-6 text-purple-500" />
-            Reportes y Retrospectivas
+            Reportes y Retrospectivas{" "}
+            <span style={{ color: businessConfig.color }}>
+              {businessConfig.emoji} {businessConfig.name}
+            </span>
           </h1>
           <p className="text-sm text-muted-foreground">
-            Reportes ejecutivos diarios generados por Agent 10 con analisis de mejora continua
+            Reportes ejecutivos diarios con análisis de mejora continua · vista de esta marca
           </p>
         </div>
         <div className="flex items-center gap-2">

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useBusiness } from "@/context/BusinessContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -43,15 +44,19 @@ interface DealFormProps {
 
 export function DealForm({ open, onClose }: DealFormProps) {
   const router = useRouter();
+  const { business } = useBusiness();
   const [contactsList, setContacts] = useState<Array<{ id: string; name: string }>>([]);
   const [stagesList, setStages] = useState<Array<{ id: string; name: string }>>([]);
 
   useEffect(() => {
     if (open) {
-      fetch("/api/contacts").then((r) => r.json()).then(setContacts);
+      // Filtrar contactos del business activo para no permitir cross-marca
+      fetch(`/api/contacts?business=${business}`)
+        .then((r) => r.json())
+        .then(setContacts);
       fetch("/api/pipeline").then((r) => r.json()).then(setStages);
     }
-  }, [open]);
+  }, [open, business]);
 
   const {
     register,
@@ -80,6 +85,7 @@ export function DealForm({ open, onClose }: DealFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
+          business,
           value: Math.round(parseFloat(data.value || "0") * 100),
           probability: parseInt(data.probability || "0"),
         }),

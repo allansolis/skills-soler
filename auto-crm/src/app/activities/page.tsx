@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useBusiness } from "@/context/BusinessContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ interface FollowUps {
 }
 
 export default function ActivitiesPage() {
+  const { business, businessConfig } = useBusiness();
   const [allActivities, setActivities] = useState<ActivityItem[]>([]);
   const [followUps, setFollowUps] = useState<FollowUps | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,8 +57,8 @@ export default function ActivitiesPage() {
 
   const loadData = () => {
     Promise.all([
-      fetch("/api/activities").then((r) => r.json()),
-      fetch("/api/followups").then((r) => r.json()),
+      fetch(`/api/activities?business=${business}`).then((r) => r.json()),
+      fetch(`/api/followups?business=${business}`).then((r) => r.json()),
     ]).then(([acts, fups]) => {
       setActivities(acts);
       setFollowUps(fups);
@@ -66,7 +68,8 @@ export default function ActivitiesPage() {
 
   useEffect(() => {
     loadData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [business]);
 
   if (loading) {
     return (
@@ -87,9 +90,14 @@ export default function ActivitiesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Actividades</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Actividades{" "}
+            <span style={{ color: businessConfig.color }}>
+              {businessConfig.emoji} {businessConfig.name}
+            </span>
+          </h1>
           <p className="text-muted-foreground">
-            Historial de interacciones y seguimientos pendientes
+            Historial de interacciones y seguimientos pendientes · solo de esta marca
         </p>
         </div>
         <Button onClick={() => setShowForm(true)} className="cursor-pointer">

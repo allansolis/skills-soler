@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { db } from "@/db";
 import { deals, contacts, pipelineStages } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
+import { DEFAULT_BUSINESS, resolveBusinessId } from "@/lib/businessConfig";
 
-export async function GET() {
-  const results = db
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const businessParam = searchParams.get("business");
+  const cookieStore = await cookies();
+  const businessRaw =
+    businessParam || cookieStore.get("business")?.value || DEFAULT_BUSINESS;
+  const business = businessRaw === "all" ? "all" : resolveBusinessId(businessRaw);
+
+  let query = db
     .select({
       id: deals.id,
       title: deals.title,
@@ -14,6 +23,7 @@ export async function GET() {
       expectedClose: deals.expectedClose,
       probability: deals.probability,
       notes: deals.notes,
+      business: deals.business,
       createdAt: deals.createdAt,
       updatedAt: deals.updatedAt,
       contactName: contacts.name,
@@ -27,10 +37,13 @@ export async function GET() {
     })
     .from(deals)
     .leftJoin(contacts, eq(deals.contactId, contacts.id))
-    .leftJoin(pipelineStages, eq(deals.stageId, pipelineStages.id))
-    .orderBy(desc(deals.createdAt))
-    .all();
+    .leftJoin(pipelineStages, eq(deals.stageId, pipelineStages.id));
 
+  if (business !== "all") {
+    query = query.where(eq(deals.business, business)) as typeof query;
+  }
+
+  const results = query.orderBy(desc(deals.createdAt)).all();
   return NextResponse.json(results);
 }
 
@@ -41,7 +54,16 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "JSON invalido" }, { status: 400 });
   }
-  const { title, value, stageId, contactId, expectedClose, probability, notes } = body;
+  const {
+    title,
+    value,
+    stageId,
+    contactId,
+    expectedClose,
+    probability,
+    notes,
+    business: bodyBusiness,
+  } = body;
 
   if (!title || !contactId) {
     return NextResponse.json(
@@ -69,6 +91,20 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Resolver business: body > cookie > business del contacto > default
+  const cookieStore = await cookies();
+  let resolvedBusiness =
+    bodyBusiness || cookieStore.get("business")?.value || null;
+  if (!resolvedBusiness) {
+    const contact = db
+      .select({ business: contacts.business })
+      .from(contacts)
+      .where(eq(contacts.id, contactId))
+      .get();
+    resolvedBusiness = contact?.business || null;
+  }
+  const business = resolveBusinessId(resolvedBusiness);
+
   try {
     const now = new Date();
     const result = db
@@ -81,6 +117,7 @@ export async function POST(request: NextRequest) {
         expectedClose: expectedClose ? new Date(expectedClose) : null,
         probability: Math.max(0, Math.min(100, Number(probability) || 0)),
         notes: notes || null,
+        business,
         createdAt: now,
         updatedAt: now,
       })

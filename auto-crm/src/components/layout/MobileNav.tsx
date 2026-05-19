@@ -2,43 +2,31 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  Users,
-  Kanban,
-  Activity,
-  Settings,
-  Briefcase,
-  MessageCircle,
-  Crown,
-  Megaphone,
-} from "lucide-react";
+import { Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/pipeline", label: "Pipeline", icon: Kanban },
-  { href: "/contacts", label: "Contactos", icon: Users },
-  { href: "/deals", label: "Deals", icon: Briefcase },
-  { href: "/conversations", label: "Conversaciones", icon: MessageCircle },
-  { href: "/ads", label: "Meta Ads", icon: Megaphone },
-  { href: "/loyalty", label: "Lealtad", icon: Crown },
-  { href: "/activities", label: "Actividades", icon: Activity },
-  { href: "/settings", label: "Configuracion", icon: Settings },
-];
+import { useBusiness } from "@/context/BusinessContext";
+import { NAV_ITEMS } from "@/lib/nav-items";
 
 export function MobileNav() {
   const pathname = usePathname();
+  const { businessConfig } = useBusiness();
 
   return (
     <div className="flex flex-col h-full bg-[var(--sidebar)] text-[var(--sidebar-foreground)]">
+      {/* Barra de color de marca */}
+      <div
+        className="h-1 w-full"
+        style={{ backgroundColor: businessConfig.color }}
+        aria-hidden
+      />
+
       <div className="flex h-16 items-center gap-2 px-6 border-b border-[var(--sidebar-border)]">
         <Briefcase className="h-6 w-6 text-[var(--sidebar-primary)]" />
-        <span className="text-lg font-bold tracking-tight">Auto-CRM</span>
+        <span className="text-lg font-bold tracking-tight">CRM SOLER</span>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1">
-        {navItems.map((item) => {
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        {NAV_ITEMS.map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== "/" && pathname.startsWith(item.href));
@@ -52,6 +40,11 @@ export function MobileNav() {
                   ? "bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)]"
                   : "text-[var(--sidebar-foreground)]/70 hover:bg-[var(--sidebar-accent)] hover:text-[var(--sidebar-accent-foreground)]"
               )}
+              style={
+                isActive
+                  ? { borderLeft: `3px solid ${businessConfig.color}`, paddingLeft: "9px" }
+                  : undefined
+              }
             >
               <item.icon className="h-5 w-5 shrink-0" />
               {item.label}
@@ -59,6 +52,15 @@ export function MobileNav() {
           );
         })}
       </nav>
+
+      <div className="px-4 py-3 border-t border-[var(--sidebar-border)]">
+        <p
+          className="text-xs font-medium"
+          style={{ color: businessConfig.color }}
+        >
+          {businessConfig.emoji} {businessConfig.name}
+        </p>
+      </div>
     </div>
   );
 }

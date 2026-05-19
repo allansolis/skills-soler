@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { contacts, activities, crmSettings } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import {
+  DEFAULT_BUSINESS,
+  isValidBusinessId,
+  resolveBusinessId,
+} from "@/lib/businessConfig";
 
 // Field name mapping: common variations → standard field
 const FIELD_MAP: Record<string, string> = {
@@ -113,6 +118,23 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Resolver business: query string > header > payload > default.
+  // Cada bot/form externo debe especificar a que marca pertenece.
+  const { searchParams } = new URL(request.url);
+  const businessSources = [
+    searchParams.get("business"),
+    request.headers.get("x-business"),
+    typeof payload.business === "string" ? payload.business : null,
+    typeof payload.brand === "string" ? payload.brand : null,
+  ];
+  const businessCandidate = businessSources.find(
+    (v) => v && isValidBusinessId(v)
+  );
+  const business = businessCandidate
+    ? resolveBusinessId(businessCandidate)
+    : DEFAULT_BUSINESS;
+  const businessExplicit = !!businessCandidate;
+
   try {
     const now = new Date();
     const contact = db
@@ -126,6 +148,7 @@ export async function POST(request: NextRequest) {
         temperature: "cold",
         score: 0,
         notes: fields.notes || null,
+        business,
         createdAt: now,
         updatedAt: now,
       })
@@ -136,8 +159,9 @@ export async function POST(request: NextRequest) {
     db.insert(activities)
       .values({
         type: "note",
-        description: `Lead recibido via webhook${fields.company ? ` (${fields.company})` : ""}`,
+        description: `Lead recibido via webhook${fields.company ? ` (${fields.company})` : ""}${!businessExplicit ? " · sin marca explicita, asignado a default" : ""}`,
         contactId: contact.id,
+        business,
         createdAt: now,
       })
       .run();
@@ -150,7 +174,15 @@ export async function POST(request: NextRequest) {
           name: contact.name,
           email: contact.email,
           source: contact.source,
+          business: contact.business,
         },
+        businessExplicit,
+        ...(businessExplicit
+          ? {}
+          : {
+              warning:
+                "El webhook no envio business explicito. Asignado a default. Use ?business=glass_soler|esmeraldas_soler|autos_soler|inversiones_soler para evitar mezcla.",
+            }),
       },
       { status: 201 }
     );

@@ -3,10 +3,14 @@ import { pipelineStages, deals, contacts } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { KanbanBoard } from "@/components/pipeline/KanbanBoard";
 import type { PipelineColumn } from "@/types";
+import { getBusinessFromCookies, BUSINESS_LABELS } from "@/lib/getBusinessFromCookies";
 
 export const dynamic = "force-dynamic";
 
-export default function PipelinePage() {
+export default async function PipelinePage() {
+  const business = await getBusinessFromCookies();
+  const bizLabel = BUSINESS_LABELS[business];
+
   const stages = db
     .select()
     .from(pipelineStages)
@@ -25,11 +29,13 @@ export default function PipelinePage() {
       notes: deals.notes,
       createdAt: deals.createdAt,
       updatedAt: deals.updatedAt,
+      business: deals.business,
       contactName: contacts.name,
       contactTemperature: contacts.temperature,
     })
     .from(deals)
     .leftJoin(contacts, eq(deals.contactId, contacts.id))
+    .where(eq(deals.business, business))
     .all();
 
   const columns: PipelineColumn[] = stages.map((stage) => ({
@@ -55,9 +61,13 @@ export default function PipelinePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Pipeline</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          Pipeline — <span style={{ color: bizLabel.color }}>
+            {bizLabel.emoji} {bizLabel.name}
+          </span>
+        </h1>
         <p className="text-muted-foreground">
-          Arrastra y suelta deals entre etapas
+          {allDeals.length} deals · arrastra y suelta entre etapas
         </p>
       </div>
 

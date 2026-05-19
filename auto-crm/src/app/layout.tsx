@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { NotificationChecker } from "@/components/shared/NotificationChecker";
 import { BusinessProvider } from "@/context/BusinessContext";
+import { getBusinessFromCookies } from "@/lib/getBusinessFromCookies";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -14,16 +15,20 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Auto-CRM - Tu CRM con Inteligencia Artificial",
+  title: "CRM SOLER - Centro de control multi-marca",
   description:
     "CRM conversacional con pipeline de ventas, clasificacion automatica de leads y seguimiento inteligente. Construido con Claude Code.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Leer business desde cookie en server para que el Provider arranque con el valor correcto
+  // y evitar el flash visual / hydration mismatch entre server y client.
+  const initialBusiness = await getBusinessFromCookies();
+
   return (
     <html lang="es" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
@@ -34,7 +39,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex" suppressHydrationWarning>
-        <BusinessProvider>
+        <BusinessProvider initialBusiness={initialBusiness}>
           <TooltipProvider>
             <Sidebar />
             <div className="flex-1 flex flex-col min-h-screen">
