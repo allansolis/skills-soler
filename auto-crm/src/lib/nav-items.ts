@@ -19,6 +19,7 @@ import {
   Search,
   FolderOpen,
   Bot,
+  Server,
   type LucideIcon,
 } from "lucide-react";
 
@@ -45,5 +46,6 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/loyalty", label: "Lealtad", icon: Crown },
   { href: "/reports", label: "Reportes", icon: FileBarChart },
   { href: "/activities", label: "Actividades", icon: Activity },
+  { href: "/status", label: "System Status", icon: Server },
   { href: "/settings", label: "Configuracion", icon: Settings },
 ];
