@@ -20,6 +20,7 @@ import {
   FolderOpen,
   Bot,
   Server,
+  Clock,
   type LucideIcon,
 } from "lucide-react";
 
@@ -35,6 +36,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/contacts", label: "Contactos", icon: Users },
   { href: "/deals", label: "Deals", icon: Briefcase },
   { href: "/conversations", label: "Conversaciones", icon: MessageCircle },
+  { href: "/queue", label: "Queue (sin responder)", icon: Clock },
   { href: "/leads", label: "Hot Leads", icon: Flame },
   { href: "/leads-kanban", label: "Kanban Leads", icon: Kanban },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },

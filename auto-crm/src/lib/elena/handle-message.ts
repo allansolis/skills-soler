@@ -11,6 +11,7 @@ import { eq } from "drizzle-orm";
 import type { BusinessId } from "@/lib/businessConfig";
 import { generateResponse } from "./respond";
 import { sendResponse, type Platform } from "./send";
+import { notifyHotLead } from "./notify-asesor";
 
 export interface HandleMessageInput {
   business: BusinessId;
@@ -60,6 +61,18 @@ export async function handleInboundMessage(
       })
       .where(eq(contacts.id, input.contactId))
       .run();
+
+    // Notificar WhatsApp al asesor humano (fire-and-forget)
+    if (elena.hotLead) {
+      notifyHotLead({
+        business: input.business,
+        contactName: contact.name,
+        contactExternalId: input.recipientExternalId,
+        platform: input.platform,
+        userMessage: input.userMessage,
+        detectedReason: elena.reason,
+      }).catch((err) => console.error("[elena] notify asesor error:", err));
+    }
   }
 
   // 4) Enviar respuesta via Meta

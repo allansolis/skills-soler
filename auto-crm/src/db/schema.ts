@@ -149,6 +149,7 @@ export const kbInsights = sqliteTable("kb_insights", {
     .$defaultFn(() => crypto.randomUUID()),
   type: text("type").notNull(), // faq | objection | trend | improvement
   category: text("category").notNull().default("ventas"),
+  business: text("business"), // multi-marca filter
   question: text("question"),
   answer: text("answer"),
   content: text("content"), // JSON for complex data
@@ -163,6 +164,7 @@ export const inventoryItems = sqliteTable("inventory_items", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
+  business: text("business"), // multi-marca filter
   metaProductId: text("meta_product_id"),
   retailerId: text("retailer_id"),
   name: text("name").notNull(),
@@ -184,6 +186,7 @@ export const executiveReports = sqliteTable("executive_reports", {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   reportDate: text("report_date").notNull(),
+  business: text("business"), // multi-marca filter
   metaSpend: integer("meta_spend").default(0),
   metaImpressions: integer("meta_impressions").default(0),
   metaReach: integer("meta_reach").default(0),
@@ -232,10 +235,27 @@ export const loyaltyActions = sqliteTable("loyalty_actions", {
   contactId: text("contact_id")
     .notNull()
     .references(() => contacts.id),
+  business: text("business"), // multi-marca filter
   action: text("action").notNull(), // purchase | referral | review | birthday | campaign_response
   points: integer("points").notNull().default(0),
   description: text("description"),
   dealId: text("deal_id").references(() => deals.id),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+// Intent tags para conversaciones (auto-clasificadas por Elena)
+export const messageIntents = sqliteTable("message_intents", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  conversationId: text("conversation_id")
+    .notNull()
+    .references(() => conversations.id),
+  business: text("business").notNull(),
+  intent: text("intent").notNull(), // info_precio | agendar_visita | queja | comparar | comprar | otro
+  confidence: integer("confidence").default(0), // 0-100
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
