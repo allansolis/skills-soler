@@ -56,6 +56,14 @@ Workspace muestra 74.6% de averías (170/228). Auditoría pendiente — ver `AUD
 ### 2026-05-19 — Agente 7 sin paginación
 El workflow original truncaba en 500 conversaciones por ventana de 6h. Fix aplicado en v2.
 
+### 2026-05-19 — Refactor "Zolutium → API BAC" verificado
+Auditoría de consistencia del commit `47760afb` completada por Elena. Resultados:
+- **Cobertura del rename**: 14 ocurrencias residuales de "zolutium" identificadas, todas **legítimas** (variables de entorno `ZOLUTIUM_*`, ID de credencial `zolutium-api`, reglas del linter que las detectan, y notas explícitas de "nombre legado" en `CLAUDE.md`, `.env.example` y este glosario). Cero residuales narrativos.
+- **JSONs intactos**: `git diff 17d9d374 47760afb -- "*.json"` vacío — los workflows productivos no fueron tocados.
+- **Coherencia narrativa**: 0 redundancias del tipo "API de API BAC" / "Servicio API BAC" / "API BAC API" / "https://api-bac/...".
+- **Sync sub-agentes**: `agentes/elena.md` y `agentes/agente-soporte-loyalty.md` idénticos entre repo y `~/.claude/agents/`.
+- **Linter (`--strict`)**: 20/20 archivos OK, 0 avisos.
+
 ## Próximos pasos
 
 1. Diagnosticar y resolver el 74.6% de fallos (`AUDITORIA-FALLOS.md`).
