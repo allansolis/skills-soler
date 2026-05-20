@@ -148,7 +148,42 @@ Agregar a `~/.claude/claude_desktop_config.json`:
 
 ## Variables de entorno
 
-- `ANTHROPIC_API_KEY` — Opcional. Para IA en la interfaz web (clasificacion de leads)
-- `RESEND_API_KEY` — Opcional. Para enviar digest diario por email (resend.com, gratis)
-- `DIGEST_EMAIL` — Opcional. Email donde recibir el digest
-- `DIGEST_FROM` — Opcional. Email remitente del digest (default: onboarding@resend.dev)
+Local dev usa **`.env`** (NO `.env.local`). Vercel CLI puede dejar lock
+huerfano sobre `.env.local` que Windows no libera; usar `.env` evita el problema.
+Next.js, drizzle-kit y nuestros scripts cargan `.env` por defecto via dotenv.
+
+Vars principales:
+
+- `ANTHROPIC_API_KEY` — Para Elena (Anthropic Messages API)
+- `ANTHROPIC_MODEL` — Default: `claude-sonnet-4-5`
+- `META_APP_ID`, `META_APP_SECRET` — Validar firma HMAC del webhook
+- `META_VERIFY_TOKEN` — Token compartido con developers.facebook.com
+- `META_ACCESS_TOKEN` — User token para Graph API (leer pages, ads)
+- `META_PAGE_TOKEN_<BIZ>` — Token long-lived por pagina para enviar mensajes
+- `META_PAGE_ID_<BIZ>` — IDs Facebook page por marca (glass/esmeraldas/autos/inversiones)
+- `META_WA_TOKEN`, `META_WA_PHONE_ID_TEST`, `META_WA_WABA_ID_TEST` — WhatsApp Business
+- `TURSO_DATABASE_URL` — libsql://...turso.io (vacio = local file)
+- `TURSO_AUTH_TOKEN` — JWT generado en app.turso.tech
+- `WEBHOOK_SECRET` — Opcional, autentica /api/webhook (formularios externos)
+- `RESEND_API_KEY`, `DIGEST_EMAIL`, `DIGEST_FROM` — Opcional, digest diario
+
+## Deploy a Vercel (productivo)
+
+Repo: `allansolis/skills-soler` (subfolder `auto-crm/` como root directory).
+Project Vercel: `crm-soler` (team `allannsolis94-3085s-projects`).
+
+Comandos:
+```bash
+vercel login                # device auth via browser
+vercel link --project crm-soler --yes
+vercel env add NAME production       # uno por uno, valor via stdin
+vercel --prod --yes                  # build + deploy
+```
+
+Para push masivo de env vars desde `.env`:
+```bash
+bash scripts/vercel-env-push.ps1     # lee .env y pushea c/u a production
+```
+
+URL productiva: https://crm-soler.vercel.app
+Webhook Meta: https://crm-soler.vercel.app/api/meta/webhook
