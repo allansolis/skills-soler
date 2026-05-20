@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     query = query.where(eq(deals.business, business)) as typeof query;
   }
 
-  const results = query.orderBy(desc(deals.createdAt)).all();
+  const results = await query.orderBy(desc(deals.createdAt)).all();
   return NextResponse.json(results);
 }
 
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
   // Get first stage if none provided
   let finalStageId = stageId;
   if (!finalStageId) {
-    const firstStage = db
+    const firstStage = await db
       .select()
       .from(pipelineStages)
       .orderBy(pipelineStages.order)
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
   let resolvedBusiness =
     bodyBusiness || cookieStore.get("business")?.value || null;
   if (!resolvedBusiness) {
-    const contact = db
+    const contact = await db
       .select({ business: contacts.business })
       .from(contacts)
       .where(eq(contacts.id, contactId))
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const now = new Date();
-    const result = db
+    const result = await db
       .insert(deals)
       .values({
         title,

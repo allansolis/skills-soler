@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
   if (filters.length > 0) {
     q = q.where(and(...filters)!) as typeof q;
   }
-  const rows = q.orderBy(desc(metaAssets.externalCreatedAt)).limit(limit).all();
+  const rows = await q.orderBy(desc(metaAssets.externalCreatedAt)).limit(limit).all();
 
   // Conteo por tipo
   const countsQuery = db
@@ -55,11 +55,11 @@ export async function GET(request: NextRequest) {
 
   const countsRows =
     business !== "all"
-      ? countsQuery
+      ? await countsQuery
           .where(eq(metaAssets.business, business))
           .groupBy(metaAssets.assetType)
           .all()
-      : countsQuery.groupBy(metaAssets.assetType).all();
+      : await countsQuery.groupBy(metaAssets.assetType).all();
 
   return NextResponse.json({
     items: rows,

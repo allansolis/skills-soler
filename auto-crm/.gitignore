@@ -49,6 +49,10 @@ next-env.d.ts
 data/crm.db
 data/crm.db-journal
 data/crm.db-wal
+data/crm.db-shm
+data/crm-backup-*.db
+data/leads-statuses.json
+data/meta-audit/
 
 # drizzle
 /drizzle/

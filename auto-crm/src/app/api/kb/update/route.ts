@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     // Store individual KB entries
     for (const entry of entries) {
-      db.insert(kbInsights)
+      await db.insert(kbInsights)
         .values({
           type: entry.type || "faq",
           category: entry.category || "ventas",
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     // Store full analysis as a summary entry
     if (fullAnalysis && Object.keys(fullAnalysis).length > 0) {
-      db.insert(kbInsights)
+      await db.insert(kbInsights)
         .values({
           type: "analysis_summary",
           category: "sistema",
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
 // GET: Returns latest KB insights
 export async function GET() {
-  const insights = db
+  const insights = await db
     .select()
     .from(kbInsights)
     .orderBy(desc(kbInsights.createdAt))

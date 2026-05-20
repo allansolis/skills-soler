@@ -33,7 +33,7 @@ export async function handleInboundMessage(
   input: HandleMessageInput
 ): Promise<HandleMessageResult> {
   // 1) Skip si el contacto esta marcado como "no-bot" (escalado)
-  const contact = db
+  const contact = await db
     .select({ id: contacts.id, name: contacts.name, temperature: contacts.temperature })
     .from(contacts)
     .where(eq(contacts.id, input.contactId))
@@ -53,7 +53,7 @@ export async function handleInboundMessage(
 
   // 3) Si Elena dice escalar, NO responder automaticamente — solo loggear y subir temperatura
   if (elena.shouldEscalate || elena.hotLead) {
-    db.update(contacts)
+    await db.update(contacts)
       .set({
         temperature: elena.hotLead ? "hot" : "warm",
         score: elena.hotLead ? 80 : 50,
@@ -86,7 +86,7 @@ export async function handleInboundMessage(
   if (!send.success) {
     console.error(`[elena] send failed: ${send.error}`);
     // Igual loggear el intento de respuesta para auditoria (con status=failed)
-    db.insert(conversations)
+    await db.insert(conversations)
       .values({
         id: crypto.randomUUID(),
         contactId: input.contactId,
@@ -111,7 +111,7 @@ export async function handleInboundMessage(
   }
 
   // 5) Loggear respuesta exitosa
-  db.insert(conversations)
+  await db.insert(conversations)
     .values({
       id: crypto.randomUUID(),
       contactId: input.contactId,

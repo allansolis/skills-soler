@@ -15,7 +15,7 @@ export async function GET() {
 
   // 1) DB accesible
   try {
-    const r = db.select({ c: sql<number>`count(*)` }).from(contacts).get();
+    const r = await db.select({ c: sql<number>`count(*)` }).from(contacts).get();
     checks.db = { ok: true, detail: `${r?.c ?? 0} contacts` };
   } catch (e) {
     checks.db = { ok: false, detail: (e as Error).message };
@@ -54,7 +54,7 @@ export async function GET() {
   // 6) Conversaciones recientes (24h)
   try {
     const since = Math.floor(Date.now() / 1000) - 86400;
-    const r = db
+    const r = await db
       .select({ c: sql<number>`count(*)` })
       .from(conversations)
       .where(sql`${conversations.createdAt} >= ${since * 1000}`)

@@ -38,7 +38,7 @@ export async function POST(request: Request) {
           )?.profile?.name || senderPhone;
 
         // Find or create contact by WhatsApp phone
-        let existingContacts = db
+        let existingContacts = await db
           .select()
           .from(contacts)
           .where(eq(contacts.whatsappPhone, senderPhone))
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
         if (existingContacts.length === 0) {
           // Also check by regular phone
-          existingContacts = db
+          existingContacts = await db
             .select()
             .from(contacts)
             .where(eq(contacts.phone, senderPhone))
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
         if (existingContacts.length > 0) {
           contactId = existingContacts[0].id;
           // Update contact with WhatsApp info
-          db.update(contacts)
+          await db.update(contacts)
             .set({
               whatsappPhone: senderPhone,
               preferredChannel: platform,
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
           results.contactsUpdated++;
         } else {
           // Create new contact from conversation
-          const newContact = db
+          const newContact = await db
             .insert(contacts)
             .values({
               name: senderName,
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
         }
 
         // Log conversation
-        db.insert(conversations)
+        await db.insert(conversations)
           .values({
             contactId,
             platform,
@@ -127,8 +127,8 @@ export async function POST(request: Request) {
 
 // GET /api/meta/sync — Get sync status and stats
 export async function GET() {
-  const allConversations = db.select().from(conversations).all();
-  const allContacts = db.select().from(contacts).all();
+  const allConversations = await db.select().from(conversations).all();
+  const allContacts = await db.select().from(contacts).all();
 
   const whatsappContacts = allContacts.filter((c) => c.whatsappPhone);
   const igContacts = allContacts.filter((c) => c.instagramHandle);

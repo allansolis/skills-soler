@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   const format = searchParams.get("format") || "json"; // json | csv
 
   // Get reports for the period
-  const reports = db
+  const reports = await db
     .select()
     .from(executiveReports)
     .orderBy(desc(executiveReports.reportDate))
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Get KB insights from the same period
-  const kbData = db
+  const kbData = await db
     .select()
     .from(kbInsights)
     .orderBy(desc(kbInsights.createdAt))
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
   const improvementCount = kbData.filter(k => k.type === "improvement").length;
 
   // Get inventory status
-  const inventory = db.select().from(inventoryItems).all();
+  const inventory = await db.select().from(inventoryItems).all();
   const inStock = inventory.filter(i => i.availability === "in stock").length;
   const topProducts = inventory
     .sort((a, b) => (b.mentionCount || 0) - (a.mentionCount || 0))

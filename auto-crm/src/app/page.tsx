@@ -27,9 +27,9 @@ export default async function DashboardPage() {
   const business = await getBusinessFromCookies();
   const bizLabel = BUSINESS_LABELS[business];
 
-  const allContacts = db.select().from(contacts).where(eq(contacts.business, business)).all();
-  const allDeals = db.select().from(deals).where(eq(deals.business, business)).all();
-  const stages = db
+  const allContacts = await db.select().from(contacts).where(eq(contacts.business, business)).all();
+  const allDeals = await db.select().from(deals).where(eq(deals.business, business)).all();
+  const stages = await db
     .select()
     .from(pipelineStages)
     .orderBy(asc(pipelineStages.order))
@@ -127,7 +127,7 @@ export default async function DashboardPage() {
   const monthlyData: MonthlyMetric[] = Array.from(monthlyMap.values());
 
   // Recent activities
-  const recentActivities = db
+  const recentActivities = await db
     .select({
       id: activities.id,
       type: activities.type,
@@ -142,6 +142,7 @@ export default async function DashboardPage() {
     .all();
 
   const isFirstRun = allContacts.length === 0 && allDeals.length === 0;
+  const totalConversationsCount = (await db.select().from(conversations).all()).length;
 
   return (
     <div className="space-y-6">
@@ -228,7 +229,7 @@ export default async function DashboardPage() {
           whatsappContacts={allContacts.filter((c) => c.whatsappPhone).length}
           igContacts={allContacts.filter((c) => c.instagramHandle).length}
           fbContacts={allContacts.filter((c) => c.facebookId).length}
-          totalConversations={db.select().from(conversations).all().length}
+          totalConversations={totalConversationsCount}
           loyaltyMembers={allContacts.filter((c) => c.loyaltyTier && c.loyaltyTier !== "none").length}
         />
         <SourceChart data={sourceData} />

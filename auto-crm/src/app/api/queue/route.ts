@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
   );
 
   // Query: ultimo mensaje por contacto, donde sea inbound
-  const rows = db
+  const rows = await db
     .select({
       contactId: conversations.contactId,
       contactName: contacts.name,
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
 
   for (const [cid, r] of byContact) {
     // Verificar si despues del inbound hubo outbound
-    const lastMsg = db
+    const lastMsg = await db
       .select({
         direction: conversations.direction,
         createdAt: conversations.createdAt,

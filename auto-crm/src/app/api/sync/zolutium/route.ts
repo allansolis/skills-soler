@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const stats = { created: 0, updated: 0, dealsCreated: 0, errors: 0 };
 
     // Get pipeline stages for mapping
-    const stages = db.select().from(pipelineStages).all();
+    const stages = await db.select().from(pipelineStages).all();
     const stageMap: Record<string, string> = {};
     for (const s of stages) {
       const nameLower = s.name.toLowerCase();
@@ -34,12 +34,12 @@ export async function POST(request: NextRequest) {
 
         const name = contact.name || "Sin nombre";
         const existing = zId
-          ? db.select().from(contacts).where(eq(contacts.zolutiumId, zId)).all()
+          ? await db.select().from(contacts).where(eq(contacts.zolutiumId, zId)).all()
           : [];
 
         if (existing.length > 0) {
           // Update existing contact
-          db.update(contacts)
+          await db.update(contacts)
             .set({
               name,
               phone: contact.phone || existing[0].phone,
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
         } else {
           // Create new contact
           const newId = crypto.randomUUID();
-          db.insert(contacts)
+          await db.insert(contacts)
             .values({
               id: newId,
               name,
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 
           // Auto-create deal if contact has pipeline stage
           if (contact.crmStatus && stageMap[contact.crmStatus]) {
-            db.insert(deals)
+            await db.insert(deals)
               .values({
                 title: `Oportunidad - ${name}`,
                 value: contact.monetaryValue || 0,
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
           }
 
           // Log activity
-          db.insert(activities)
+          await db.insert(activities)
             .values({
               type: "sync",
               description: `Contacto sincronizado desde Zolutium (${contact.source || "auto"})`,
@@ -118,12 +118,12 @@ export async function POST(request: NextRequest) {
 
 // GET: Returns sync status and last sync info
 export async function GET() {
-  const totalContacts = db.select().from(contacts).all().length;
-  const zolutiumContacts = db
+  const totalContacts = (await db.select().from(contacts).all()).length;
+  const zolutiumContacts = (await db
     .select()
     .from(contacts)
     .where(eq(contacts.source, "zolutium"))
-    .all().length;
+    .all()).length;
 
   return NextResponse.json({
     totalContacts,

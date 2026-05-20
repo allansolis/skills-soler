@@ -8,7 +8,7 @@ import { desc } from "drizzle-orm";
 // Agent 3 calls this before optimizing campaigns
 export async function GET() {
   // Last 7 reports
-  const reports = db
+  const reports = await db
     .select()
     .from(executiveReports)
     .orderBy(desc(executiveReports.reportDate))
@@ -16,7 +16,7 @@ export async function GET() {
     .all();
 
   // Latest KB insights
-  const insights = db
+  const insights = await db
     .select()
     .from(kbInsights)
     .orderBy(desc(kbInsights.createdAt))
@@ -24,7 +24,7 @@ export async function GET() {
     .all();
 
   // Inventory state
-  const inventory = db.select().from(inventoryItems).all();
+  const inventory = await db.select().from(inventoryItems).all();
 
   // Calculate performance trends
   const perfTrends = calculateTrends(reports);

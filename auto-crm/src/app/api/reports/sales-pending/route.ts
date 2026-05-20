@@ -4,7 +4,7 @@ import { deals, contacts, activities, pipelineStages } from "@/db/schema";
 import { eq, isNull, desc } from "drizzle-orm";
 
 export async function GET() {
-  const allDeals = db
+  const allDeals = await db
     .select({
       id: deals.id,
       title: deals.title,
@@ -29,7 +29,7 @@ export async function GET() {
     .orderBy(desc(deals.value))
     .all();
 
-  const overdueFollowups = db
+  const overdueFollowups = (await db
     .select({
       id: activities.id,
       description: activities.description,
@@ -42,7 +42,7 @@ export async function GET() {
     .leftJoin(contacts, eq(activities.contactId, contacts.id))
     .where(isNull(activities.completedAt))
     .orderBy(desc(activities.scheduledAt))
-    .all()
+    .all())
     .filter((a) => a.scheduledAt && new Date(a.scheduledAt) <= new Date());
 
   const activeDeals = allDeals.filter((d) => !d.isWon && !d.isLost);

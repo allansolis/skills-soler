@@ -26,15 +26,15 @@ export async function POST() {
   }
 
   // Gather data
-  const allContacts = db.select().from(contacts).all();
-  const allDeals = db.select().from(deals).all();
-  const stages = db
+  const allContacts = await db.select().from(contacts).all();
+  const allDeals = await db.select().from(deals).all();
+  const stages = await db
     .select()
     .from(pipelineStages)
     .orderBy(asc(pipelineStages.order))
     .all();
 
-  const pendingActivities = db
+  const pendingActivities = await db
     .select({
       id: activities.id,
       type: activities.type,

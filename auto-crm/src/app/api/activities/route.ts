@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     query = query.where(and(...filters)!) as typeof query;
   }
 
-  const results = query.orderBy(desc(activities.createdAt)).all();
+  const results = await query.orderBy(desc(activities.createdAt)).all();
   return NextResponse.json(results);
 }
 
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
   let resolvedBusiness =
     bodyBusiness || cookieStore.get("business")?.value || null;
   if (!resolvedBusiness) {
-    const contact = db
+    const contact = await db
       .select({ business: contacts.business })
       .from(contacts)
       .where(eq(contacts.id, contactId))
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
   const business = resolveBusinessId(resolvedBusiness);
 
   try {
-    const result = db
+    const result = await db
       .insert(activities)
       .values({
         type,

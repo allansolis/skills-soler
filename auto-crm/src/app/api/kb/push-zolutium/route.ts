@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const maxEntries = body.maxEntries || 20;
 
     // Fetch latest insights from DB
-    const allInsights = db
+    const allInsights = await db
       .select()
       .from(kbInsights)
       .orderBy(desc(kbInsights.createdAt))
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
       .map((i) => i.id);
 
     for (const id of insightIds) {
-      db.update(kbInsights)
+      await db.update(kbInsights)
         .set({ appliedToZolutium: true })
         .where(eq(kbInsights.id, id))
         .run();
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
 
 // GET: Check sync status
 export async function GET() {
-  const total = db.select().from(kbInsights).all();
+  const total = await db.select().from(kbInsights).all();
   const applied = total.filter((i) => i.appliedToZolutium);
   const pending = total.filter((i) => !i.appliedToZolutium);
 

@@ -61,8 +61,8 @@ interface HistoryMessage {
   createdAt: Date;
 }
 
-function loadHistory(contactId: string, business: BusinessId): HistoryMessage[] {
-  const rows = db
+async function loadHistory(contactId: string, business: BusinessId): Promise<HistoryMessage[]> {
+  const rows = await db
     .select({
       direction: conversations.direction,
       message: conversations.message,
@@ -99,7 +99,7 @@ export async function generateResponse(opts: {
   }
 
   // Cargar contexto: ultimos mensajes
-  const history = loadHistory(opts.contactId, opts.business);
+  const history = await loadHistory(opts.contactId, opts.business);
 
   // Construir mensajes para Anthropic (excluir el mensaje actual que ya esta en DB)
   // Asume que el mensaje del usuario YA fue insertado por el webhook

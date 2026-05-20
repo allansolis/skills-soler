@@ -17,24 +17,24 @@ export async function GET(request: NextRequest) {
   );
 
   // Total contacts
-  const totalContacts = db
+  const totalContacts = await db
     .select({ c: sql<number>`count(*)` })
     .from(contacts)
     .where(eq(contacts.business, business))
     .get();
 
   // Hot leads
-  const hotLeads = db
+  const hotLeads = await db
     .select({ c: sql<number>`count(*)` })
     .from(contacts)
     .where(and(eq(contacts.business, business), eq(contacts.temperature, "hot"))!)
     .get();
 
   // Won deals
-  const stages = db.select().from(pipelineStages).all();
+  const stages = await db.select().from(pipelineStages).all();
   const wonStageIds = stages.filter((s) => s.isWon).map((s) => s.id);
 
-  const allDeals = db.select().from(deals).where(eq(deals.business, business)).all();
+  const allDeals = await db.select().from(deals).where(eq(deals.business, business)).all();
   const wonDeals = allDeals.filter((d) => wonStageIds.includes(d.stageId));
   const totalRevenue = wonDeals.reduce((s, d) => s + d.value, 0);
   const avgTicket = wonDeals.length > 0 ? totalRevenue / wonDeals.length : 0;
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
   const cac = null;
 
   // Conversaciones inbound vs outbound (engagement)
-  const conversationStats = db
+  const conversationStats = await db
     .select({
       direction: conversations.direction,
       c: sql<number>`count(*)`,

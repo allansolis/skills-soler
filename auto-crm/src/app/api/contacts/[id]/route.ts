@@ -9,7 +9,7 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  const contact = db
+  const contact = await db
     .select()
     .from(contacts)
     .where(eq(contacts.id, id))
@@ -22,13 +22,13 @@ export async function GET(
     );
   }
 
-  const contactDeals = db
+  const contactDeals = await db
     .select()
     .from(deals)
     .where(eq(deals.contactId, id))
     .all();
 
-  const contactActivities = db
+  const contactActivities = await db
     .select()
     .from(activities)
     .where(eq(activities.contactId, id))
@@ -54,7 +54,7 @@ export async function PUT(
     return NextResponse.json({ error: "JSON invalido" }, { status: 400 });
   }
 
-  const existing = db
+  const existing = await db
     .select()
     .from(contacts)
     .where(eq(contacts.id, id))
@@ -78,7 +78,7 @@ export async function PUT(
   if (body.score !== undefined) updateData.score = Math.max(0, Math.min(100, body.score));
   if (body.notes !== undefined) updateData.notes = body.notes;
 
-  const result = db
+  const result = await db
     .update(contacts)
     .set(updateData)
     .where(eq(contacts.id, id))
@@ -94,7 +94,7 @@ export async function DELETE(
 ) {
   const { id } = await params;
 
-  const existing = db
+  const existing = await db
     .select()
     .from(contacts)
     .where(eq(contacts.id, id))
@@ -107,6 +107,6 @@ export async function DELETE(
     );
   }
 
-  db.delete(contacts).where(eq(contacts.id, id)).run();
+  await db.delete(contacts).where(eq(contacts.id, id)).run();
   return NextResponse.json({ success: true });
 }

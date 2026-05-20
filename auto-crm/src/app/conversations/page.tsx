@@ -12,7 +12,7 @@ export default async function ConversationsPage() {
 
   // Filtrar conversaciones por business. Aceptar tambien las conversaciones
   // cuyo contacto pertenezca al business (legacy: conversations sin columna business)
-  const allConversations = db
+  const allConversations = await db
     .select({
       id: conversations.id,
       contactId: conversations.contactId,
@@ -43,7 +43,7 @@ export default async function ConversationsPage() {
     return false;
   });
 
-  const allContacts = db
+  const allContacts = await db
     .select()
     .from(contacts)
     .where(eq(contacts.business, business))

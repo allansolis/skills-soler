@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     .orderBy(desc(conversations.createdAt))
     .limit(limit);
 
-  let results = query.all();
+  let results = await query.all();
 
   // Filter in JS since drizzle SQLite has limited dynamic where
   if (platform) {
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const newConvo = db
+    const newConvo = await db
       .insert(conversations)
       .values({
         contactId: contactId || null,
@@ -78,13 +78,13 @@ export async function POST(request: Request) {
 
     // Update contact conversation count
     if (contactId) {
-      const contact = db
+      const contact = await db
         .select()
         .from(contacts)
         .where(eq(contacts.id, contactId))
         .get();
       if (contact) {
-        db.update(contacts)
+        await db.update(contacts)
           .set({
             conversationCount: (contact.conversationCount || 0) + 1,
             lastConversationAt: new Date(),

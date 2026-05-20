@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const reportDate = body.date || new Date().toISOString().split("T")[0];
 
     // Check if report for today already exists
-    const existing = db
+    const existing = await db
       .select()
       .from(executiveReports)
       .where(eq(executiveReports.reportDate, reportDate))
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     if (existing.length > 0) {
       // Update existing report
-      db.update(executiveReports)
+      await db.update(executiveReports)
         .set({
           metaSpend: Math.round(meta.spend_CRC || 0),
           metaImpressions: meta.impressions || 0,
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new report
-    const result = db
+    const result = await db
       .insert(executiveReports)
       .values({
         reportDate,
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const limit = parseInt(searchParams.get("limit") || "7");
 
-  const reports = db
+  const reports = await db
     .select()
     .from(executiveReports)
     .orderBy(desc(executiveReports.reportDate))

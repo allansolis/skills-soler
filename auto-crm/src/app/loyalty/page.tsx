@@ -17,33 +17,33 @@ export default async function LoyaltyPage() {
   const business = await getBusinessFromCookies();
   const bizLabel = BUSINESS_LABELS[business];
 
-  const programs = db.select().from(loyaltyPrograms).all();
-  const tiers = db
+  const programs = await db.select().from(loyaltyPrograms).all();
+  const tiers = await db
     .select()
     .from(loyaltyTiers)
     .orderBy(asc(loyaltyTiers.order))
     .all();
 
   // Filtrar contactos por business
-  const allContacts = db
+  const allContacts = await db
     .select()
     .from(contacts)
     .where(eq(contacts.business, business))
     .all();
 
-  const allDeals = db
+  const allDeals = await db
     .select()
     .from(deals)
     .where(eq(deals.business, business))
     .all();
 
-  const stages = db.select().from(pipelineStages).all();
+  const stages = await db.select().from(pipelineStages).all();
 
   // Acciones de lealtad solo de contactos del business activo
   const contactIds = allContacts.map((c) => c.id);
   const actions =
     contactIds.length > 0
-      ? db
+      ? await db
           .select()
           .from(loyaltyActions)
           .where(inArray(loyaltyActions.contactId, contactIds))

@@ -11,13 +11,13 @@ export default async function PipelinePage() {
   const business = await getBusinessFromCookies();
   const bizLabel = BUSINESS_LABELS[business];
 
-  const stages = db
+  const stages = await db
     .select()
     .from(pipelineStages)
     .orderBy(asc(pipelineStages.order))
     .all();
 
-  const allDeals = db
+  const allDeals = await db
     .select({
       id: deals.id,
       title: deals.title,

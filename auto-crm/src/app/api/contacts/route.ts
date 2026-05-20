@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     query = query.where(and(...filters)!) as typeof query;
   }
 
-  const results = query.orderBy(desc(contacts.createdAt)).all();
+  const results = await query.orderBy(desc(contacts.createdAt)).all();
   return NextResponse.json(results);
 }
 
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const now = new Date();
-    const result = db
+    const result = await db
       .insert(contacts)
       .values({
         name,

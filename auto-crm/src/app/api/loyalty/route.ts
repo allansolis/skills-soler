@@ -12,22 +12,22 @@ import { NextResponse } from "next/server";
 
 // GET /api/loyalty — Full loyalty dashboard data
 export async function GET() {
-  const programs = db.select().from(loyaltyPrograms).all();
-  const tiers = db
+  const programs = await db.select().from(loyaltyPrograms).all();
+  const tiers = await db
     .select()
     .from(loyaltyTiers)
     .orderBy(asc(loyaltyTiers.order))
     .all();
-  const actions = db
+  const actions = await db
     .select()
     .from(loyaltyActions)
     .orderBy(desc(loyaltyActions.createdAt))
     .limit(50)
     .all();
 
-  const allContacts = db.select().from(contacts).all();
-  const allDeals = db.select().from(deals).all();
-  const stages = db.select().from(pipelineStages).all();
+  const allContacts = await db.select().from(contacts).all();
+  const allDeals = await db.select().from(deals).all();
+  const stages = await db.select().from(pipelineStages).all();
 
   // Find contacts close to closing a deal (Negociacion or Propuesta stage)
   const closeToClosing = allContacts
@@ -138,7 +138,7 @@ export async function POST(request: Request) {
     }
 
     // Log the loyalty action
-    db.insert(loyaltyActions)
+    await db.insert(loyaltyActions)
       .values({
         contactId,
         action,
@@ -149,7 +149,7 @@ export async function POST(request: Request) {
       .run();
 
     // Update contact loyalty points
-    const contact = db
+    const contact = await db
       .select()
       .from(contacts)
       .where(eq(contacts.id, contactId))
@@ -163,7 +163,7 @@ export async function POST(request: Request) {
           : contact.totalPurchases || 0;
 
       // Auto-calculate tier based on points
-      const allTiers = db
+      const allTiers = await db
         .select()
         .from(loyaltyTiers)
         .orderBy(desc(loyaltyTiers.minPoints))
@@ -177,7 +177,7 @@ export async function POST(request: Request) {
         }
       }
 
-      db.update(contacts)
+      await db.update(contacts)
         .set({
           loyaltyPoints: newPoints,
           loyaltyTier: newTier,

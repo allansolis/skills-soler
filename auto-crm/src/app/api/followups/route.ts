@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const pendingFollowups = db
+  const pendingFollowups = await db
     .select({
       id: activities.id,
       type: activities.type,

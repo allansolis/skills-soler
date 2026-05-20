@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       const retailerId = product.retailerId || product.retailer_id;
       if (!retailerId) continue;
 
-      const existing = db
+      const existing = await db
         .select()
         .from(inventoryItems)
         .where(eq(inventoryItems.retailerId, retailerId))
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       const mentions = mentionCount[retailerId] || 0;
 
       if (existing.length > 0) {
-        db.update(inventoryItems)
+        await db.update(inventoryItems)
           .set({
             name: product.name || existing[0].name,
             price: product.price || existing[0].price,
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
           .run();
         stats.updated++;
       } else {
-        db.insert(inventoryItems)
+        await db.insert(inventoryItems)
           .values({
             metaProductId: product.id || null,
             retailerId,
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
 
 // GET: Returns current inventory state
 export async function GET() {
-  const items = db
+  const items = await db
     .select()
     .from(inventoryItems)
     .orderBy(desc(inventoryItems.mentionCount))

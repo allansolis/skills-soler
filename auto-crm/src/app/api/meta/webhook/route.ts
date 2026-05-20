@@ -9,13 +9,22 @@
  *
  * Mapea page_id / phone_number_id / ig_account_id -> business y persiste en CRM.
  */
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import crypto from "crypto";
 import { db } from "@/db";
 import { contacts, conversations } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { BusinessId, isValidBusinessId } from "@/lib/businessConfig";
 import { handleInboundMessage } from "@/lib/elena/handle-message";
+
+// Vercel/Node serverless functions die after the response is sent.
+// Use Next's `after()` so Elena's Anthropic call runs AFTER we return 200 to
+// Meta but still inside the function's lifecycle (no 5s webhook timeout risk).
+//
+// We also force the Node runtime (not Edge) because the libSQL HTTP client
+// expects fetch + crypto from Node, and we use HMAC via node:crypto.
+export const runtime = "nodejs";
+export const maxDuration = 60; // seconds. Anthropic + Meta send + DB writes.
 
 // FB pages
 const PAGE_TO_BUSINESS: Record<string, BusinessId> = {
@@ -75,12 +84,12 @@ function verifySignature(rawBody: string, sig: string | null): boolean {
 
 type Platform = "messenger" | "instagram" | "whatsapp";
 
-function upsertContact(opts: {
+async function upsertContact(opts: {
   business: BusinessId;
   externalId: string;
   name?: string;
   platform: Platform;
-}): string {
+}): Promise<string> {
   const now = new Date();
   const fbId = opts.platform === "messenger" ? opts.externalId : null;
   const igHandle = opts.platform === "instagram" ? opts.externalId : null;
@@ -88,19 +97,19 @@ function upsertContact(opts: {
 
   let existing;
   if (fbId) {
-    existing = db
+    existing = await db
       .select({ id: contacts.id })
       .from(contacts)
       .where(and(eq(contacts.facebookId, fbId), eq(contacts.business, opts.business)))
       .get();
   } else if (igHandle) {
-    existing = db
+    existing = await db
       .select({ id: contacts.id })
       .from(contacts)
       .where(and(eq(contacts.instagramHandle, igHandle), eq(contacts.business, opts.business)))
       .get();
   } else if (waPhone) {
-    existing = db
+    existing = await db
       .select({ id: contacts.id })
       .from(contacts)
       .where(and(eq(contacts.whatsappPhone, waPhone), eq(contacts.business, opts.business)))
@@ -108,7 +117,7 @@ function upsertContact(opts: {
   }
 
   if (existing) {
-    db.update(contacts)
+    await db.update(contacts)
       .set({ updatedAt: now, lastConversationAt: now })
       .where(eq(contacts.id, existing.id))
       .run();
@@ -116,7 +125,7 @@ function upsertContact(opts: {
   }
 
   const id = crypto.randomUUID();
-  db.insert(contacts)
+  await db.insert(contacts)
     .values({
       id,
       name: opts.name || `Lead ${opts.externalId.slice(-6)}`,
@@ -140,7 +149,7 @@ function upsertContact(opts: {
   return id;
 }
 
-function insertMessage(opts: {
+async function insertMessage(opts: {
   contactId: string;
   business: BusinessId;
   platform: Platform;
@@ -150,8 +159,8 @@ function insertMessage(opts: {
   senderName?: string;
   senderPhone?: string;
   timestampMs?: number;
-}): boolean {
-  const existing = db
+}): Promise<boolean> {
+  const existing = await db
     .select({ id: conversations.id })
     .from(conversations)
     .where(eq(conversations.externalId, opts.externalId))
@@ -159,7 +168,7 @@ function insertMessage(opts: {
   if (existing) return false;
 
   const date = opts.timestampMs ? new Date(opts.timestampMs) : new Date();
-  db.insert(conversations)
+  await db.insert(conversations)
     .values({
       id: crypto.randomUUID(),
       contactId: opts.contactId,
@@ -188,11 +197,11 @@ interface MessagingEvent {
   postback?: { mid?: string; payload?: string; title?: string };
 }
 
-function handlePageEntry(
+async function handlePageEntry(
   entry: { id?: string; messaging?: MessagingEvent[] },
   isInstagram: boolean,
   stats: Stats
-): void {
+): Promise<void> {
   const pageOrIgId = entry.id;
   const business = isInstagram
     ? (pageOrIgId && IG_TO_BUSINESS[pageOrIgId])
@@ -217,7 +226,7 @@ function handlePageEntry(
       const otherUserId = isEcho ? recipientId : senderId;
       if (!otherUserId) { stats.skipped++; continue; }
 
-      const contactId = upsertContact({
+      const contactId = await upsertContact({
         business,
         externalId: otherUserId,
         platform,
@@ -240,23 +249,29 @@ function handlePageEntry(
         continue;
       }
 
-      const ok = insertMessage({
+      const ok = await insertMessage({
         contactId, business, platform, direction,
         message: text, externalId: extId, timestampMs: ev.timestamp,
       });
       if (ok) stats.processed++; else stats.skipped++;
 
-      // Disparar Elena en mensajes inbound de texto (no en echoes ni postbacks de boton)
+      // Disparar Elena en mensajes inbound de texto (no en echoes ni postbacks).
+      // Usamos `after()` de Next: corre DESPUES de devolver 200 a Meta pero
+      // dentro del lifecycle de la function. Esto evita el timeout de 5s del
+      // webhook y permite que la llamada a Anthropic (3-5s) complete.
       if (ok && direction === "inbound" && ev.message?.text) {
-        // Fire-and-forget: no await para no bloquear el 200 a Meta
-        handleInboundMessage({
-          business,
-          contactId,
-          platform,
-          recipientExternalId: otherUserId,
-          userMessage: text,
-        }).catch((err) => {
-          console.error("[meta-webhook] Elena handler error:", err);
+        after(async () => {
+          try {
+            await handleInboundMessage({
+              business,
+              contactId,
+              platform,
+              recipientExternalId: otherUserId,
+              userMessage: text,
+            });
+          } catch (err) {
+            console.error("[meta-webhook] Elena handler error:", err);
+          }
         });
       }
     } catch (err) {
@@ -301,7 +316,7 @@ interface WAEntry {
   }>;
 }
 
-function handleWAEntry(entry: WAEntry, stats: Stats): void {
+async function handleWAEntry(entry: WAEntry, stats: Stats): Promise<void> {
   for (const change of entry.changes || []) {
     if (change.field !== "messages") {
       stats.skipped++;
@@ -331,7 +346,7 @@ function handleWAEntry(entry: WAEntry, stats: Stats): void {
         const waId = m.from;
         if (!waId || !m.id) { stats.skipped++; continue; }
 
-        const contactId = upsertContact({
+        const contactId = await upsertContact({
           business,
           externalId: waId,
           name: nameByWaId[waId],
@@ -348,23 +363,27 @@ function handleWAEntry(entry: WAEntry, stats: Stats): void {
         }
 
         const ts = m.timestamp ? parseInt(m.timestamp, 10) * 1000 : Date.now();
-        const ok = insertMessage({
+        const ok = await insertMessage({
           contactId, business, platform: "whatsapp", direction: "inbound",
           message: text, externalId: m.id, senderPhone: waId,
           senderName: nameByWaId[waId], timestampMs: ts,
         });
         if (ok) stats.processed++; else stats.skipped++;
 
-        // Disparar Elena para WA (siempre inbound, no hay echoes)
+        // Disparar Elena para WA (siempre inbound, no hay echoes) via after()
         if (ok && m.text?.body) {
-          handleInboundMessage({
-            business,
-            contactId,
-            platform: "whatsapp",
-            recipientExternalId: waId,
-            userMessage: text,
-          }).catch((err) => {
-            console.error("[meta-webhook] Elena WA handler error:", err);
+          after(async () => {
+            try {
+              await handleInboundMessage({
+                business,
+                contactId,
+                platform: "whatsapp",
+                recipientExternalId: waId,
+                userMessage: text,
+              });
+            } catch (err) {
+              console.error("[meta-webhook] Elena WA handler error:", err);
+            }
           });
         }
       } catch (err) {
@@ -377,7 +396,7 @@ function handleWAEntry(entry: WAEntry, stats: Stats): void {
     for (const st of value.statuses || []) {
       try {
         if (!st.id || !st.status) { stats.skipped++; continue; }
-        db.update(conversations)
+        await db.update(conversations)
           .set({ status: st.status })
           .where(eq(conversations.externalId, st.id))
           .run();
@@ -426,11 +445,11 @@ export async function POST(request: NextRequest) {
   for (const entry of entries) {
     try {
       if (object === "page") {
-        handlePageEntry(entry as Parameters<typeof handlePageEntry>[0], false, stats);
+        await handlePageEntry(entry as Parameters<typeof handlePageEntry>[0], false, stats);
       } else if (object === "instagram") {
-        handlePageEntry(entry as Parameters<typeof handlePageEntry>[0], true, stats);
+        await handlePageEntry(entry as Parameters<typeof handlePageEntry>[0], true, stats);
       } else if (object === "whatsapp_business_account") {
-        handleWAEntry(entry as WAEntry, stats);
+        await handleWAEntry(entry as WAEntry, stats);
       } else {
         console.warn(`[meta-webhook] unknown object=${object}`);
         stats.skipped++;

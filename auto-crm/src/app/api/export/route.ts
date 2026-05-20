@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     if (filters.length > 0) {
       q = q.where(and(...filters)!) as typeof q;
     }
-    const allContacts = q.orderBy(desc(contacts.createdAt)).all();
+    const allContacts = await q.orderBy(desc(contacts.createdAt)).all();
 
     const headers = [
       "Nombre",
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
     if (filters.length > 0) {
       q = q.where(and(...filters)!) as typeof q;
     }
-    const allDeals = q.orderBy(asc(pipelineStages.order)).all();
+    const allDeals = await q.orderBy(asc(pipelineStages.order)).all();
 
     const headers = [
       "Titulo",
